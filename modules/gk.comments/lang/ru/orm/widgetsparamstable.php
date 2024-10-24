@@ -1,0 +1,2 @@
+<?php
+$MESS['DOCUMENT_ENTITY_ID_FIELD'] = '';
