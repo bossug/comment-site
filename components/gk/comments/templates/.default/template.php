@@ -6,14 +6,14 @@ CJSCore::Init(['fx']);
 \Bitrix\Main\UI\Extension::load(['ui.buttons', 'ui.dialogs.messagebox', 'ui.layout-form', 'gkvue3.comments','ui.bootstrap4']);
 ?>
 <div id="application">
-    <content-header v-bind:title="modalTitle"></content-header>
+    <content-header v-bind:title="modalTitle" v-bind:path="path" v-bind:query="query"></content-header>
     <div class="comment-body">
-        <content-body v-for="(post,index) in posts"
+        <content-body v-for="(post,index) in arResult.arrayComment"
             :key="index"
-            :name="post.title"
-            :text="post.text"
+            :name="post.USER_NAME"
+            :text="post.COMMENT"
             :icon="post.icon"
-            :elementid="post.elementId"
+            :elementid="post.COMMENT_ID"
             :data="post.data"
             :timedata="post.timeData"
             :letter="post.letter"

@@ -14,6 +14,7 @@
     use Bitrix\Main\ORM\Fields\StringField;
     use Bitrix\Main\ORM\Fields\BooleanField;
     use Bitrix\Main\SystemException;
+    use Bitrix\Main\Type\DateTime;
 
     Loc::loadMessages(__FILE__);
 
@@ -59,8 +60,8 @@
                     ]
                 ),
 
-                /** ID элемента, если на детальной странице */
-                new IntegerField('ELEMENT_ID', ['required' => true]),
+                /** ID Комментария */
+                new IntegerField('COMMENT_ID', ['title' => 'ID Комментария']),
 
                 /** Код инфоблока */
                 new StringField('IBLOCK_CODE'),
@@ -68,17 +69,22 @@
                 /** ID инфоблока */
                 new IntegerField('IBLOCK_ID'),
 
-                /** Если не новое сообщение, а ответ на сообщение */
-                new IntegerField('PARENT_ELEMENT_ID'),
-
                 /** Время создания сообщения */
-                new DatetimeField('DATE_CREATE', ['required' => true]),
+                new DatetimeField('DATE_CREATE', [
+                    'required' => true,
+                    'default' => function () {
+                        return new DateTime();
+                    },
+                    'title' => 'Время создания сообщения'
+                ]),
 
                 /** Текст сообщения */
-                new StringField('COMMENT'),
+                new StringField('COMMENT', ['title' => 'Текст сообщения']),
+                new StringField('PATH'),
+                new StringField('QUERY'),
 
                 /** Если пользователь зарегистрирован и авторизован */
-                new IntegerField('USER_ID'),
+                new IntegerField('USER_ID', ['title' => 'Если пользователь зарегистрирован и авторизован']),
 
                 /** Если пользователь не авторизован, заполняются поля в форме */
                 new StringField('USER_NAME'),

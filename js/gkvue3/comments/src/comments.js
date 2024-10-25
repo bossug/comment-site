@@ -19,13 +19,24 @@ export class Comments
 	getTemplate()
 	{
 		const context = this;
+		const {runAction, prepareForm} = BX.ajax;
 		this.#application = BitrixVue.createApp({
 			setup()
 			{
-				const arResult = reactive({});
-				/*runAction('').then(function(response){
-					arResult.arrayOpenElement = response.data
-				})*/
+				let url = new URL(location);
+				const arResult = reactive({
+					arrayComment: [{}]
+				});
+				arResult.path = url.pathname;
+				arResult.query = url.search;
+				runAction('gk:comments.CC.ResponseGkComments.getComment',{
+					data: {
+						path: arResult.path,
+						query: arResult.query
+					}
+				}).then(function(response){
+					arResult.arrayComment = response.data
+				})
 				return {
 					arResult,
 				};
@@ -39,7 +50,10 @@ export class Comments
 			data() {
 				return {
 					//modalTitle: Loc.getMessages(),
-					posts: [
+					posts: this.arResult.arrayComment,
+					path: this.arResult.path,
+					query: this.arResult.query,
+					/*posts: [
 						{
 							title: 'User3',
 							text: 'Content4',
@@ -70,13 +84,13 @@ export class Comments
 							elementId: 1,
 							id: '',
 						},
-					]
+					]*/
 				}
 			},
 		})
 
 		this.#application.component("content-header", {
-			props: ['title', 'name'],
+			props: ['title', 'name', 'path', 'query'],
 			data()
 			{
 				return {
@@ -92,6 +106,26 @@ export class Comments
 				{
 					this.showComment = false;
 				},
+				buttonSendComment()
+				{
+					const {arResult} = this;
+					let text = $('#addComment textarea');
+					let input = $('#addComment input');
+					let comment = text.val();
+					console.log(arResult)
+					runAction('gk:comments.CC.ResponseGkComments.setComment',{
+						data: prepareForm(BX('addComment')).data
+					}).then(function(comment){
+						//comment.val(null)
+						$('#closeComments').trigger('click')
+						let list = JSON.parse(comment.data)
+						$(list).each(function (i, n) {
+							console.log(n)
+							arResult.arrayComment.push(n)
+						})
+						return arResult;
+					});
+				}
 			},
 			template: `
 				<div class="comment-header">
@@ -108,8 +142,42 @@ export class Comments
 							</div>
 						</div>
 						<div class="ui-form form-body" v-if="showComment">
-							<div class="ui-form-row">
-								<form action="" id="addComment" class="ui-ctl-w100">
+							<form id="addComment" class="ui-ctl-w100">
+								<input type="hidden" name="path" :value="path">
+								<input type="hidden" name="query" :value="query">
+								<div class="ui-form-row-inline">
+									<div class="ui-form-row">
+										<div class="ui-form-label">
+											<div class="ui-ctl-label-text">Ваше имя</div>
+										</div>
+										<div class="ui-form-content">
+											<div class="ui-ctl ui-ctl-textbox ui-ctl-w100">
+												<input type="text" name="NAME" class="ui-ctl-element">
+											</div>
+										</div>
+									</div>
+									<div class="ui-form-row">
+										<div class="ui-form-label">
+											<div class="ui-ctl-label-text">Ваша фамилия</div>
+										</div>
+										<div class="ui-form-content">
+											<div class="ui-ctl ui-ctl-textbox ui-ctl-w100">
+												<input type="text" name="LAST_NAME" class="ui-ctl-element">
+											</div>
+										</div>
+									</div>
+									<div class="ui-form-row">
+										<div class="ui-form-label">
+											<div class="ui-ctl-label-text">Ваш E-mail</div>
+										</div>
+										<div class="ui-form-content">
+											<div class="ui-ctl ui-ctl-textbox ui-ctl-w100">
+												<input type="text" name="EMAIL" class="ui-ctl-element">
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="ui-form-row">
 									<div class="ui-form-label">
 										<div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_COMMENT')}}</div>
 									</div>
@@ -119,10 +187,10 @@ export class Comments
 										</div>
 									</div>
 									<div class="ui-form-content mt-3">
-										<div class="ui-btn ui-btn-success" @click="" id="buttonSendComment">{{$Bitrix.Loc.getMessage('SEND_COMMENT')}}</div>
+										<div class="ui-btn ui-btn-success" @click="buttonSendComment" id="buttonSendComment">{{$Bitrix.Loc.getMessage('SEND_COMMENT')}}</div>
 									</div>
-								</form>
-							<div>
+								<div>
+							</form>
 						</div>
 					</div>
 				</div>
