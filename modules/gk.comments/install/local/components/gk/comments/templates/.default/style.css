@@ -1,0 +1,20 @@
+.vote-row {
+    margin-bottom: 20px;
+}
+.date-row {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    align-items: center;
+}
+.vote-row .title {
+    font-weight: 700;
+    font-size: 16px;
+}
+#application .listing {
+    margin: 10px 0;
+    padding: 10px;
+    border: #ccc solid 1px;
+    border-radius: 10px;
+    width: 90%;
+}

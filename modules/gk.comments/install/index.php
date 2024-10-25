@@ -124,6 +124,14 @@ class gk_comments extends CModule
             $_SERVER['DOCUMENT_ROOT'].'/local/modules/'.$this->MODULE_ID.'/install/admin/',
             $_SERVER['DOCUMENT_ROOT'].'/bitrix/admin'
         );
+        CopyDirFiles(
+            $_SERVER['DOCUMENT_ROOT'].'/local/modules/'.$this->MODULE_ID.'/install/local/components/',
+            $_SERVER['DOCUMENT_ROOT'].'/local/components'
+        );
+        CopyDirFiles(
+            $_SERVER['DOCUMENT_ROOT'].'/local/modules/'.$this->MODULE_ID.'/install/local/js/',
+            $_SERVER['DOCUMENT_ROOT'].'/local/js'
+        );
 
         return true;
     }
@@ -133,6 +141,14 @@ class gk_comments extends CModule
         DeleteDirFiles(
             $_SERVER['DOCUMENT_ROOT'].'/local/modules/'.$this->MODULE_ID.'/install/admin/',
             $_SERVER['DOCUMENT_ROOT'].'/bitrix/admin'
+        );
+        DeleteDirFiles(
+            $_SERVER['DOCUMENT_ROOT'].'/local/modules/'.$this->MODULE_ID.'/install/local/components/',
+            $_SERVER['DOCUMENT_ROOT'].'/local/components'
+        );
+        DeleteDirFiles(
+            $_SERVER['DOCUMENT_ROOT'].'/local/modules/'.$this->MODULE_ID.'/install/local/js/',
+            $_SERVER['DOCUMENT_ROOT'].'/local/js'
         );
 
         return true;
