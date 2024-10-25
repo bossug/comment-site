@@ -19,6 +19,12 @@ export class Comments
 	{
 		const context = this;
 		this.#application = BitrixVue.createApp({
+			computed: {
+				isUser()
+				{
+					return false;
+				}
+			},
 			data() {
 				return {
 					modalTitle: Loc.getMessage('COMMENTS_TITLE'),
@@ -43,13 +49,23 @@ export class Comments
 				}
 			},
 		})
-		this.#application.component("content-modal", {
-			props: ['title'],
+
+		this.#application.component("content-header", {
+			props: ['title', 'name'],
 			template: `
-				<h4>{{title}}</h4>
+				<div class="comment-header">
+					<div class="comment-button-body mb-3" v-if="isUser">
+						<div class="title">{{name}}</div>
+						<a href="javascript:void(0)" class="link-comment" @click="newComment">Написать сообщение</a>
+					</div>
+					<div class="comment-button-body mb-3" v-else>
+						<div class="title">Аноним</div>
+						<a href="javascript:void(0)" class="link-comment" @click="newCommentNotAuth">Написать сообщение</a>
+					</div>
+				</div>
 			`,
 		})
-		this.#application.component("content-second", {
+		this.#application.component("content-body", {
 			props: ['title', 'text', 'icon', 'data', 'elementId', 'id'],
 			template: `
 				<div>

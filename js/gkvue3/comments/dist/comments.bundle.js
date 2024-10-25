@@ -23,6 +23,11 @@
 	    key: "getTemplate",
 	    value: function getTemplate() {
 	      babelHelpers.classPrivateFieldSet(this, _application, ui_vue3.BitrixVue.createApp({
+	        computed: {
+	          isUser: function isUser() {
+	            return false;
+	          }
+	        },
 	        data: function data() {
 	          return {
 	            modalTitle: main_core.Loc.getMessage('COMMENTS_TITLE'),
@@ -44,11 +49,11 @@
 	          };
 	        }
 	      }));
-	      babelHelpers.classPrivateFieldGet(this, _application).component("content-modal", {
-	        props: ['title'],
-	        template: "\n\t\t\t\t<h4>{{title}}</h4>\n\t\t\t"
+	      babelHelpers.classPrivateFieldGet(this, _application).component("content-header", {
+	        props: ['title', 'name'],
+	        template: "\n\t\t\t\t<div class=\"comment-header\">\n\t\t\t\t\t<div class=\"comment-button-body mb-3\" v-if=\"isUser\">\n\t\t\t\t\t\t<div class=\"title\">{{name}}</div>\n\t\t\t\t\t\t<a href=\"javascript:void(0)\" class=\"link-comment\" @click=\"newComment\">\u041D\u0430\u043F\u0438\u0441\u0430\u0442\u044C \u0441\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u0435</a>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"comment-button-body mb-3\" v-else>\n\t\t\t\t\t\t<div class=\"title\">\u0410\u043D\u043E\u043D\u0438\u043C</div>\n\t\t\t\t\t\t<a href=\"javascript:void(0)\" class=\"link-comment\" @click=\"newCommentNotAuth\">\u041D\u0430\u043F\u0438\u0441\u0430\u0442\u044C \u0441\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u0435</a>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t"
 	      });
-	      babelHelpers.classPrivateFieldGet(this, _application).component("content-second", {
+	      babelHelpers.classPrivateFieldGet(this, _application).component("content-body", {
 	        props: ['title', 'text', 'icon', 'data', 'elementId', 'id'],
 	        template: "\n\t\t\t\t<div>\n\t\t\t\t\t<div>{{title}}</div>\n\t\t\t\t\t<div>{{text}}</div>\n\t\t\t\t</div>\n\t\t\t"
 	      });

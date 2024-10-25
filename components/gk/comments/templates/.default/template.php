@@ -6,15 +6,15 @@ CJSCore::Init(['fx']);
 \Bitrix\Main\UI\Extension::load(['ui.buttons', 'ui.dialogs.messagebox', 'ui.layout-form', 'gkvue3.comments']);
 ?>
 <div id="application">
-    <content-modal v-bind:title="modalTitle"></content-modal>
-    <content-second v-for="(post,index) in posts"
+    <content-header v-bind:title="modalTitle"></content-header>
+    <content-body v-for="(post,index) in posts"
         :key="index"
         :title="post.title"
         :text="post.text"
         :icon="post.icon"
         :elementId="post.elementId"
         :data="post.data"
-    ></content-second>
+    ></content-body>
 </div>
 <script>
     const comments = new BX.Comments('#application');
