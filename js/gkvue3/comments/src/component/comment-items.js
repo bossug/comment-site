@@ -25,14 +25,26 @@ export const CommentItems = {
             showComment: false,
             arResult,
             path: arResult.path,
-            query: arResult.query
+            query: arResult.query,
+            NAME: null,
+            LAST_NAME: null,
+            EMAIL: null,
+            text: null,
         }
     },
     computed: {
         isUser()
         {
             return false;
-        }
+        },
+        isFormValid() {
+            const { NAME, LAST_NAME, EMAIL, text } = this;
+            return (
+                NAME.length > 4 && LAST_NAME.length > 4 &&
+                /(.+)@(.+){2,}.(.+){2,}/.test(EMAIL) &&
+                text.length > 5
+            );
+        },
     },
     methods: {
         openCommentNotAuth()
@@ -73,7 +85,7 @@ export const CommentItems = {
                             </div>
                         </div>
                         <div class="ui-form form-body" v-if="showComment">
-                            <form id="addComment" class="ui-ctl-w100">
+                            <form id="addComment" class="ui-ctl-w100" @submit.prevent="buttonSendComment">
                                 <input type="hidden" name="path" :value="path">
                                 <input type="hidden" name="query" :value="query">
                                 <div class="ui-form-row-inline">
@@ -83,7 +95,7 @@ export const CommentItems = {
                                         </div>
                                         <div class="ui-form-content">
                                             <div class="ui-ctl ui-ctl-textbox ui-ctl-w100">
-                                                <input type="text" name="NAME" class="ui-ctl-element">
+                                                <input type="text" v-model="NAME" name="NAME" class="ui-ctl-element">
                                             </div>
                                         </div>
                                     </div>
@@ -93,7 +105,7 @@ export const CommentItems = {
                                         </div>
                                         <div class="ui-form-content">
                                             <div class="ui-ctl ui-ctl-textbox ui-ctl-w100">
-                                                <input type="text" name="LAST_NAME" class="ui-ctl-element">
+                                                <input type="text" v-model="LAST_NAME" name="LAST_NAME" class="ui-ctl-element">
                                             </div>
                                         </div>
                                     </div>
@@ -103,7 +115,7 @@ export const CommentItems = {
                                         </div>
                                         <div class="ui-form-content">
                                             <div class="ui-ctl ui-ctl-textbox ui-ctl-w100">
-                                                <input type="text" name="EMAIL" class="ui-ctl-element">
+                                                <input type="text" v-model="EMAIL" name="EMAIL" class="ui-ctl-element">
                                             </div>
                                         </div>
                                     </div>
@@ -114,11 +126,11 @@ export const CommentItems = {
                                     </div>
                                     <div class="ui-form-content">
                                         <div class="ui-ctl ui-ctl-textarea ui-ctl-w100">
-                                            <textarea name="text" class="ui-ctl-element require" required></textarea>
+                                            <textarea v-model="text" name="text" class="ui-ctl-element require"></textarea>
                                         </div>
                                     </div>
                                     <div class="ui-form-content mt-3">
-                                        <div class="ui-btn ui-btn-success" @click="buttonSendComment()" id="buttonSendComment">{{$Bitrix.Loc.getMessage('SEND_COMMENT')}}</div>
+                                        <input class="ui-btn ui-btn-success" type="submit" :value="$Bitrix.Loc.getMessage('SEND_COMMENT')" />
                                     </div>
                                 <div>
                             </form>
