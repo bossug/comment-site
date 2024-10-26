@@ -7,9 +7,10 @@
 Компонент, подключаемый для ведения комментариев
 
 ## Установка
-- Установить nodejs
-- Установить $ npm install -g @bitrix/cli
-
-В папке local/components/gk/comments выполняя изменения после сохранения выполнять bitrix build
+- Установить модуль gk.comments
+- Разместить код компонента в том месте где нужны комментарии
+- $APPLICATION->IncludeComponent("gk:comments", "", [],
+  false
+  );
 
 
