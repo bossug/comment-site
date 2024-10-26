@@ -74,7 +74,7 @@ class ResponseGkComments extends Controller
                 }
             }
         }
-        return \Bitrix\Main\Web\Json::encode($result);
+        return $result;
     }
     public function getCommentAction()
     {

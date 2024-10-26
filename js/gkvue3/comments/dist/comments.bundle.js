@@ -2,6 +2,63 @@
 (function (exports,main_core,ui_vue3) {
     'use strict';
 
+    var Items = {
+      props: ['name', 'letter', 'text', 'icon', 'data', 'timedata', 'elementId', 'id'],
+      template: "\n        <div class=\"comment-item\">\n            <div class=\"header-top\">\n                <div class=\"f-left\">\n                    <div class=\"f-circle\">\n                        <div class=\"letter\">{{letter}}</div>\n                    </div>\n                    <div class=\"f-content\">\n                        <div>{{name}}</div>\n                        <div v-if=\"(timedata=='')\">{{data}}</div>\n                        <div v-else>{{timedata}}</div>\n                    </div>\n                </div>\n            </div>\n            <div class=\"text\">{{text}}</div>\n        </div>\n    "
+    };
+
+    var _BX$ajax = BX.ajax,
+      runAction = _BX$ajax.runAction,
+      prepareForm = _BX$ajax.prepareForm;
+    var CommentItems = {
+      components: {
+        Items: Items
+      },
+      data: function data() {
+        var url = new URL(location);
+        var arResult = ui_vue3.reactive({});
+        arResult.path = url.pathname;
+        arResult.query = url.search;
+        runAction('gk:comments.CC.ResponseGkComments.getComment', {
+          data: {
+            path: arResult.path,
+            query: arResult.query
+          }
+        }).then(function (response) {
+          arResult.arrayComment = response.data;
+        });
+        return {
+          showComment: false,
+          arResult: arResult,
+          path: arResult.path,
+          query: arResult.query
+        };
+      },
+      computed: {
+        isUser: function isUser() {
+          return false;
+        }
+      },
+      methods: {
+        openCommentNotAuth: function openCommentNotAuth() {
+          this.showComment = true;
+        },
+        closeCommentNotAuth: function closeCommentNotAuth() {
+          this.showComment = false;
+        },
+        buttonSendComment: function buttonSendComment() {
+          var arResult = this.arResult;
+          runAction('gk:comments.CC.ResponseGkComments.setComment', {
+            data: prepareForm(BX('addComment')).data
+          }).then(function (comment) {
+            $('#closeComments').trigger('click');
+            arResult.arrayComment = comment.data;
+          });
+        }
+      },
+      template: "\n            <div>\n                <div class=\"comment-header\">\n                    <div class=\"comment-button-body mb-3\" v-if=\"isUser\">\n                        <div class=\"title\">{{name}}</div>\n                        <a href=\"javascript:void(0)\" class=\"link-comment\" @click=\"newComment\">{{$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')}}</a>\n                    </div>\n                    <div class=\"comment-button-body mb-3\" v-else>\n                        <div class=\"button-body\">\n                            <div class=\"title\">{{$Bitrix.Loc.getMessage('USER_TITLE')}}</div>\n                            <div class=\"blockButton\">\n                                <div class=\"ui-ctl-label-text\" @click=\"openCommentNotAuth\" v-if=\"!showComment\" role=\"button\"><i class=\"fa fa-comment\"></i> {{$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')}}</div>\n                                <div class=\"ui-ctl-label-text\" @click=\"closeCommentNotAuth\" v-if=\"showComment\" id=\"closeComments\" role=\"button\"><i class=\"fa fa-comment\"></i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}</div>\n                            </div>\n                        </div>\n                        <div class=\"ui-form form-body\" v-if=\"showComment\">\n                            <form id=\"addComment\" class=\"ui-ctl-w100\">\n                                <input type=\"hidden\" name=\"path\" :value=\"path\">\n                                <input type=\"hidden\" name=\"query\" :value=\"query\">\n                                <div class=\"ui-form-row-inline\">\n                                    <div class=\"ui-form-row\">\n                                        <div class=\"ui-form-label\">\n                                            <div class=\"ui-ctl-label-text\">\u0412\u0430\u0448\u0435 \u0438\u043C\u044F</div>\n                                        </div>\n                                        <div class=\"ui-form-content\">\n                                            <div class=\"ui-ctl ui-ctl-textbox ui-ctl-w100\">\n                                                <input type=\"text\" name=\"NAME\" class=\"ui-ctl-element\">\n                                            </div>\n                                        </div>\n                                    </div>\n                                    <div class=\"ui-form-row\">\n                                        <div class=\"ui-form-label\">\n                                            <div class=\"ui-ctl-label-text\">\u0412\u0430\u0448\u0430 \u0444\u0430\u043C\u0438\u043B\u0438\u044F</div>\n                                        </div>\n                                        <div class=\"ui-form-content\">\n                                            <div class=\"ui-ctl ui-ctl-textbox ui-ctl-w100\">\n                                                <input type=\"text\" name=\"LAST_NAME\" class=\"ui-ctl-element\">\n                                            </div>\n                                        </div>\n                                    </div>\n                                    <div class=\"ui-form-row\">\n                                        <div class=\"ui-form-label\">\n                                            <div class=\"ui-ctl-label-text\">\u0412\u0430\u0448 E-mail</div>\n                                        </div>\n                                        <div class=\"ui-form-content\">\n                                            <div class=\"ui-ctl ui-ctl-textbox ui-ctl-w100\">\n                                                <input type=\"text\" name=\"EMAIL\" class=\"ui-ctl-element\">\n                                            </div>\n                                        </div>\n                                    </div>\n                                </div>\n                                <div class=\"ui-form-row\">\n                                    <div class=\"ui-form-label\">\n                                        <div class=\"ui-ctl-label-text\">{{$Bitrix.Loc.getMessage('YOUR_COMMENT')}}</div>\n                                    </div>\n                                    <div class=\"ui-form-content\">\n                                        <div class=\"ui-ctl ui-ctl-textarea ui-ctl-w100\">\n                                            <textarea name=\"text\" class=\"ui-ctl-element require\"></textarea>\n                                        </div>\n                                    </div>\n                                    <div class=\"ui-form-content mt-3\">\n                                        <div class=\"ui-btn ui-btn-success\" @click=\"buttonSendComment()\" id=\"buttonSendComment\">{{$Bitrix.Loc.getMessage('SEND_COMMENT')}}</div>\n                                    </div>\n                                <div>\n                            </form>\n                        </div>\n                    </div>\n                </div>\n                <div class=\"comment-body\">\n                    <template v-for=\"(post, index) in arResult.arrayComment\" :key=\"index\">\n                        <Items \n                        :name=\"post.USER_NAME\"\n                        :text=\"post.COMMENT\"\n                        :icon=\"post.icon\"\n                        :elementid=\"post.COMMENT_ID\"\n                        :data=\"post.data\"\n                        :timedata=\"post.timeData\"\n                        :letter=\"post.letter\"/>\n                    </template>\n                </div>\n            </div>\n    "
+    };
+
     function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
     function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
     var _application = /*#__PURE__*/new WeakMap();
@@ -22,116 +79,16 @@
       }, {
         key: "getTemplate",
         value: function getTemplate() {
-          var _BX$ajax = BX.ajax,
-            runAction = _BX$ajax.runAction,
-            prepareForm = _BX$ajax.prepareForm;
+          var context = this;
           babelHelpers.classPrivateFieldSet(this, _application, ui_vue3.BitrixVue.createApp({
-            setup: function setup() {
-              var url = new URL(location);
-              var arResult = ui_vue3.reactive({
-                arrayComment: [{}]
-              });
-              arResult.path = url.pathname;
-              arResult.query = url.search;
-              runAction('gk:comments.CC.ResponseGkComments.getComment', {
-                data: {
-                  path: arResult.path,
-                  query: arResult.query
-                }
-              }).then(function (response) {
-                arResult.arrayComment = response.data;
-              });
-              return {
-                arResult: arResult
-              };
+            components: {
+              CommentItems: CommentItems
             },
-            computed: {
-              isUser: function isUser() {
-                return false;
-              }
+            beforeCreate: function beforeCreate() {
+              this.$bitrix.Application.set(context);
             },
-            data: function data() {
-              return {
-                //modalTitle: Loc.getMessages(),
-                posts: this.arResult.arrayComment,
-                path: this.arResult.path,
-                query: this.arResult.query
-                /*posts: [
-                	{
-                		title: 'User3',
-                		text: 'Content4',
-                		icon: '',
-                		data: '25.10.2024',
-                		timeData: '',
-                		letter: 'H',
-                		elementId: 3,
-                		id: '',
-                	},
-                	{
-                		title: 'User1',
-                		text: 'Content1',
-                		icon: '',
-                		data: '2.02.2021',
-                		timeData: 'вчера',
-                		letter: 'U',
-                		elementId: 2,
-                		id: '',
-                	},
-                	{
-                		title: 'User2',
-                		text: 'Content3',
-                		icon: '',
-                		data: '14.07.2024',
-                		timeData: '',
-                		letter: 'I',
-                		elementId: 1,
-                		id: '',
-                	},
-                ]*/
-              };
-            }
+            template: '<CommentItems/>'
           }));
-
-          babelHelpers.classPrivateFieldGet(this, _application).component("content-header", {
-            props: ['title', 'name', 'path', 'query'],
-            data: function data() {
-              return {
-                showComment: false
-              };
-            },
-            methods: {
-              openCommentNotAuth: function openCommentNotAuth() {
-                this.showComment = true;
-              },
-              closeCommentNotAuth: function closeCommentNotAuth() {
-                this.showComment = false;
-              },
-              buttonSendComment: function buttonSendComment() {
-                var arResult = this.arResult;
-                var text = $('#addComment textarea');
-                var input = $('#addComment input');
-                var comment = text.val();
-                console.log(arResult);
-                runAction('gk:comments.CC.ResponseGkComments.setComment', {
-                  data: prepareForm(BX('addComment')).data
-                }).then(function (comment) {
-                  //comment.val(null)
-                  $('#closeComments').trigger('click');
-                  var list = JSON.parse(comment.data);
-                  $(list).each(function (i, n) {
-                    console.log(n);
-                    arResult.arrayComment.push(n);
-                  });
-                  return arResult;
-                });
-              }
-            },
-            template: "\n\t\t\t\t<div class=\"comment-header\">\n\t\t\t\t\t<div class=\"comment-button-body mb-3\" v-if=\"isUser\">\n\t\t\t\t\t\t<div class=\"title\">{{name}}</div>\n\t\t\t\t\t\t<a href=\"javascript:void(0)\" class=\"link-comment\" @click=\"newComment\">{{$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')}}</a>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"comment-button-body mb-3\" v-else>\n\t\t\t\t\t\t<div class=\"button-body\">\n\t\t\t\t\t\t\t<div class=\"title\">{{$Bitrix.Loc.getMessage('USER_TITLE')}}</div>\n\t\t\t\t\t\t\t<div class=\"blockButton\">\n\t\t\t\t\t\t\t\t<div class=\"ui-ctl-label-text\" @click=\"openCommentNotAuth\" v-if=\"!showComment\" role=\"button\"><i class=\"fa fa-comment\"></i> {{$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')}}</div>\n\t\t\t\t\t\t\t\t<div class=\"ui-ctl-label-text\" @click=\"closeCommentNotAuth\" v-if=\"showComment\" id=\"closeComments\" role=\"button\"><i class=\"fa fa-comment\"></i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"ui-form form-body\" v-if=\"showComment\">\n\t\t\t\t\t\t\t<form id=\"addComment\" class=\"ui-ctl-w100\">\n\t\t\t\t\t\t\t\t<input type=\"hidden\" name=\"path\" :value=\"path\">\n\t\t\t\t\t\t\t\t<input type=\"hidden\" name=\"query\" :value=\"query\">\n\t\t\t\t\t\t\t\t<div class=\"ui-form-row-inline\">\n\t\t\t\t\t\t\t\t\t<div class=\"ui-form-row\">\n\t\t\t\t\t\t\t\t\t\t<div class=\"ui-form-label\">\n\t\t\t\t\t\t\t\t\t\t\t<div class=\"ui-ctl-label-text\">\u0412\u0430\u0448\u0435 \u0438\u043C\u044F</div>\n\t\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t\t<div class=\"ui-form-content\">\n\t\t\t\t\t\t\t\t\t\t\t<div class=\"ui-ctl ui-ctl-textbox ui-ctl-w100\">\n\t\t\t\t\t\t\t\t\t\t\t\t<input type=\"text\" name=\"NAME\" class=\"ui-ctl-element\">\n\t\t\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t<div class=\"ui-form-row\">\n\t\t\t\t\t\t\t\t\t\t<div class=\"ui-form-label\">\n\t\t\t\t\t\t\t\t\t\t\t<div class=\"ui-ctl-label-text\">\u0412\u0430\u0448\u0430 \u0444\u0430\u043C\u0438\u043B\u0438\u044F</div>\n\t\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t\t<div class=\"ui-form-content\">\n\t\t\t\t\t\t\t\t\t\t\t<div class=\"ui-ctl ui-ctl-textbox ui-ctl-w100\">\n\t\t\t\t\t\t\t\t\t\t\t\t<input type=\"text\" name=\"LAST_NAME\" class=\"ui-ctl-element\">\n\t\t\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t<div class=\"ui-form-row\">\n\t\t\t\t\t\t\t\t\t\t<div class=\"ui-form-label\">\n\t\t\t\t\t\t\t\t\t\t\t<div class=\"ui-ctl-label-text\">\u0412\u0430\u0448 E-mail</div>\n\t\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t\t<div class=\"ui-form-content\">\n\t\t\t\t\t\t\t\t\t\t\t<div class=\"ui-ctl ui-ctl-textbox ui-ctl-w100\">\n\t\t\t\t\t\t\t\t\t\t\t\t<input type=\"text\" name=\"EMAIL\" class=\"ui-ctl-element\">\n\t\t\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<div class=\"ui-form-row\">\n\t\t\t\t\t\t\t\t\t<div class=\"ui-form-label\">\n\t\t\t\t\t\t\t\t\t\t<div class=\"ui-ctl-label-text\">{{$Bitrix.Loc.getMessage('YOUR_COMMENT')}}</div>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t<div class=\"ui-form-content\">\n\t\t\t\t\t\t\t\t\t\t<div class=\"ui-ctl ui-ctl-textarea ui-ctl-w100\">\n\t\t\t\t\t\t\t\t\t\t\t<textarea name=\"text\" class=\"ui-ctl-element require\"></textarea>\n\t\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t<div class=\"ui-form-content mt-3\">\n\t\t\t\t\t\t\t\t\t\t<div class=\"ui-btn ui-btn-success\" @click=\"buttonSendComment\" id=\"buttonSendComment\">{{$Bitrix.Loc.getMessage('SEND_COMMENT')}}</div>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<div>\n\t\t\t\t\t\t\t</form>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t"
-          });
-          babelHelpers.classPrivateFieldGet(this, _application).component("content-body", {
-            props: ['name', 'letter', 'text', 'icon', 'data', 'timedata', 'elementId', 'id'],
-            template: "\n\t\t\t\t<div class=\"comment-item\">\n\t\t\t\t\t<div class=\"header-top\">\n\t\t\t\t\t\t<div class=\"f-left\">\n\t\t\t\t\t\t\t<div class=\"f-circle\">\n\t\t\t\t\t\t\t\t<div class=\"letter\">{{letter}}</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"f-content\">\n\t\t\t\t\t\t\t\t<div>{{name}}</div>\n\t\t\t\t\t\t\t\t<div v-if=\"(timedata=='')\">{{data}}</div>\n\t\t\t\t\t\t\t\t<div v-else>{{timedata}}</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"text\">{{text}}</div>\n\t\t\t\t</div>\n\t\t\t"
-          });
           babelHelpers.classPrivateFieldGet(this, _application).mount(this.rootNode);
         }
       }]);
