@@ -59,7 +59,10 @@ export const CommentItems = {
                 <div class="comment-header">
                     <div class="comment-button-body mb-3" v-if="isUser">
                         <div class="title">{{name}}</div>
-                        <a href="javascript:void(0)" class="link-comment" @click="newComment">{{$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')}}</a>
+                        <div class="blockButton">
+                                <div class="ui-ctl-label-text" @click="openCommentAuth" v-if="!showComment" role="button"><i class="fa fa-comment"></i> {{$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')}}</div>
+                                <div class="ui-ctl-label-text" @click="closeCommentAuth" v-if="showComment" id="closeComments" role="button"><i class="fa fa-comment"></i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}</div>
+                            </div>
                     </div>
                     <div class="comment-button-body mb-3" v-else>
                         <div class="button-body">
@@ -111,7 +114,7 @@ export const CommentItems = {
                                     </div>
                                     <div class="ui-form-content">
                                         <div class="ui-ctl ui-ctl-textarea ui-ctl-w100">
-                                            <textarea name="text" class="ui-ctl-element require"></textarea>
+                                            <textarea name="text" class="ui-ctl-element require" required></textarea>
                                         </div>
                                     </div>
                                     <div class="ui-form-content mt-3">

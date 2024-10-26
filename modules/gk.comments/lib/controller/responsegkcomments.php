@@ -61,11 +61,15 @@ class ResponseGkComments extends Controller
         $response = GkCommentsTable::add($fields);
         if ($response->isSuccess()) {
             $params = [
-                'filter' => [
-                    '=PATH' => $path,
-                ],
-                'count_total' => 1
+                'count_total' => 1,
+                'order' => ['DATE_CREATE' => 'ASC'],
             ];
+            if ($path === '/' || $path === '') {
+                // мы на главной
+                $params['filter']['COMMENT_ID'] = 0;
+            } else {
+                $params['filter']['=PATH'] = $path;
+            }
             $objs = GkCommentsTable::getList($params);
             $result = [];
             if ($objs->getCount() > 0) {
@@ -85,15 +89,17 @@ class ResponseGkComments extends Controller
         $request = Application::getInstance()->getContext()->getRequest();
         $path = $request->getPost('path');
         $query = $request->getPost('query');
+
+        $params = [
+            'count_total' => 1,
+            'order' => ['DATE_CREATE' => 'ASC'],
+        ];
         if ($path === '/' || $path === '') {
             // мы на главной
+            $params['filter']['COMMENT_ID'] = 0;
+        } else {
+            $params['filter']['=PATH'] = $path;
         }
-        $params = [
-            'filter' => [
-                '=PATH' => $path,
-            ],
-            'count_total' => 1
-        ];
         $objs = GkCommentsTable::getList($params);
         $result = [];
         if ($objs->getCount() > 0) {
