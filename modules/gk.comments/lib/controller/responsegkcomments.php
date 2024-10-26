@@ -72,10 +72,12 @@ class ResponseGkComments extends Controller
             }
             $objs = GkCommentsTable::getList($params);
             $result = [];
+            $objTime = new DateTime();
+            $objTime->add('-1 days');
             if ($objs->getCount() > 0) {
                 foreach ($objs->fetchAll() as &$obj) {
                     $obj['data'] = $obj['DATE_CREATE']->format('d.m.Y');
-                    $obj['timeData'] = '';
+                    $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp() ? 'вчера' : 'сегодня';
                     $obj['letter'] = mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
                     $obj['NAME'] = $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
                     $result[] = $obj;
@@ -102,10 +104,12 @@ class ResponseGkComments extends Controller
         }
         $objs = GkCommentsTable::getList($params);
         $result = [];
+        $objTime = new DateTime();
+        $objTime->add('-1 days');
         if ($objs->getCount() > 0) {
             foreach ($objs->fetchAll() as &$obj) {
                 $obj['data'] = $obj['DATE_CREATE']->format('d.m.Y');
-                $obj['timeData'] = '';
+                $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp() ? 'вчера' : 'сегодня';
                 $obj['letter'] = mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
                 $obj['NAME'] = $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
                 $result[] = $obj;
