@@ -125,7 +125,7 @@ export const CommentItems = {
                 <div class="comment-body">
                     <template v-for="(post, index) in arResult.arrayComment" :key="index">
                         <Items 
-                        :name="post.USER_NAME"
+                        :name="post.NAME"
                         :text="post.COMMENT"
                         :icon="post.icon"
                         :elementid="post.COMMENT_ID"

@@ -69,7 +69,11 @@ class ResponseGkComments extends Controller
             $objs = GkCommentsTable::getList($params);
             $result = [];
             if ($objs->getCount() > 0) {
-                foreach ($objs->fetchAll() as $obj) {
+                foreach ($objs->fetchAll() as &$obj) {
+                    $obj['data'] = $obj['DATE_CREATE']->format('d.m.Y');
+                    $obj['timeData'] = '';
+                    $obj['letter'] = mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
+                    $obj['NAME'] = $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
                     $result[] = $obj;
                 }
             }
@@ -93,7 +97,11 @@ class ResponseGkComments extends Controller
         $objs = GkCommentsTable::getList($params);
         $result = [];
         if ($objs->getCount() > 0) {
-            foreach ($objs->fetchAll() as $obj) {
+            foreach ($objs->fetchAll() as &$obj) {
+                $obj['data'] = $obj['DATE_CREATE']->format('d.m.Y');
+                $obj['timeData'] = '';
+                $obj['letter'] = mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
+                $obj['NAME'] = $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
                 $result[] = $obj;
             }
         }
