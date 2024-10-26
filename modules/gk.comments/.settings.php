@@ -2,7 +2,7 @@
 return [
 	'controllers' => [
 		'value' => [
-			'defaultNamespace' => '\\M\\Code\\Controller',
+			'defaultNamespace' => '\\GK\\Comments\\Controller',
 			'namespaces' => [
 				'\\Gk\\Comments\\Controller' => 'CC'
 			],
