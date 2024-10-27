@@ -28,7 +28,8 @@ class ResponseGkComments extends Controller
             ],
             'setComment' => [
                 'prefilters' => []
-            ]
+            ],
+            'delComment' => ['prefilters' => []]
 		];
 	}
 
@@ -92,6 +93,37 @@ class ResponseGkComments extends Controller
         $path = $request->getPost('path');
         $query = $request->getPost('query');
 
+        $params = [
+            'count_total' => 1,
+            'order' => ['DATE_CREATE' => 'ASC'],
+        ];
+        if ($path === '/' || $path === '') {
+            // мы на главной
+            $params['filter']['COMMENT_ID'] = 0;
+        } else {
+            $params['filter']['=PATH'] = $path;
+        }
+        $objs = GkCommentsTable::getList($params);
+        $result = [];
+        $objTime = new DateTime();
+        $objTime->add('-1 days');
+        if ($objs->getCount() > 0) {
+            foreach ($objs->fetchAll() as &$obj) {
+                $obj['data'] = $obj['DATE_CREATE']->format('d.m.Y');
+                $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp() ? 'вчера' : 'сегодня';
+                $obj['letter'] = mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
+                $obj['NAME'] = $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
+                $result[] = $obj;
+            }
+        }
+        return $result;
+    }
+
+    public function delCommentAction()
+    {
+        $request = Application::getInstance()->getContext()->getRequest();
+        $path = $request->getPost('path');
+        GkCommentsTable::delete($request->getPost('id'));
         $params = [
             'count_total' => 1,
             'order' => ['DATE_CREATE' => 'ASC'],

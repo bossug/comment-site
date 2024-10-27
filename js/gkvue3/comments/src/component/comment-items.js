@@ -64,6 +64,18 @@ export const CommentItems = {
                 $('#closeComments').trigger('click')
                 arResult.arrayComment = comment.data
             });
+        },
+        Delete(id)
+        {
+            const {arResult} = this;
+            runAction('gk:comments.CC.ResponseGkComments.delComment',{
+                data: {
+                    id: id,
+                    path: this.path
+                }
+            }).then(function(comment){
+                arResult.arrayComment = comment.data
+            });
         }
     },
     template: `
@@ -146,7 +158,9 @@ export const CommentItems = {
                         :elementid="post.COMMENT_ID"
                         :data="post.data"
                         :timedata="post.timeData"
-                        :letter="post.letter"/>
+                        :letter="post.letter"
+                        :id="post.ID"
+                        @message-del="Delete"/>
                     </template>
                 </div>
             </div>

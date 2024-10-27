@@ -18,3 +18,14 @@
     border-radius: 10px;
     width: 90%;
 }
+.socnet-button {
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
+    column-gap: 20px;
+    color: #999;
+}
+.socnet-button i:hover {
+    color: #605A5B;
+    cursor: pointer;
+}
