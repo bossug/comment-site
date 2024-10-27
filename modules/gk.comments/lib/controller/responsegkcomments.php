@@ -90,6 +90,7 @@ class ResponseGkComments extends Controller
     public function getCommentAction()
     {
         $request = Application::getInstance()->getContext()->getRequest();
+        $userId = \Bitrix\Main\Engine\CurrentUser::getId();
         $path = $request->getPost('path');
         $query = $request->getPost('query');
 
@@ -113,6 +114,7 @@ class ResponseGkComments extends Controller
                 $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp() ? 'вчера' : 'сегодня';
                 $obj['letter'] = mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
                 $obj['NAME'] = $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
+                $obj['author'] = $obj['USER_ID'] === $userId;
                 $result[] = $obj;
             }
         }
