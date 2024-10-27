@@ -123,8 +123,8 @@ class ResponseGkComments extends Controller
     {
         $request = Application::getInstance()->getContext()->getRequest();
         $path = $request->getPost('path');
-        //GkCommentsTable::delete($request->getPost('id'));
-        $params = [
+        GkCommentsTable::delete($request->getPost('id'));
+        /*$params = [
             'count_total' => 1,
             'order' => ['DATE_CREATE' => 'ASC'],
         ];
@@ -146,7 +146,7 @@ class ResponseGkComments extends Controller
                 $obj['NAME'] = $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
                 $result[] = $obj;
             }
-        }
-        return $result;
+        }*/
+        return [];
     }
 }
