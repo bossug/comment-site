@@ -76,6 +76,10 @@ export const CommentItems = {
             }).then(function(comment){
                 arResult.arrayComment = comment.data
             });
+        },
+        Edit(id)
+        {
+            console.log(id)
         }
     },
     template: `
@@ -160,7 +164,8 @@ export const CommentItems = {
                         :timedata="post.timeData"
                         :letter="post.letter"
                         :id="post.ID"
-                        @message-del="Delete"/>
+                        @message-del="Delete"
+                        @message-edit="Edit"/>
                     </template>
                 </div>
             </div>

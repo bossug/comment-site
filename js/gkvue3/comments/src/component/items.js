@@ -18,7 +18,7 @@ export const Items = {
             <div class="text">{{text}}</div>
             <div class="socnet-button">
                 <i class="fa fa-commenting" aria-hidden="true" title="Комментировать"></i>
-                <i class="fa fa-pencil" aria-hidden="true" title="Редактировать"></i>
+                <i class="fa fa-pencil" aria-hidden="true" title="Редактировать" @click="$emit('messageEdit', id)"></i>
                 <i class="fa fa-trash" aria-hidden="true" title="удалить" @click="$emit('messageDel', id)"></i>
             </div>
         </div>
