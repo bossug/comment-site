@@ -65,22 +65,30 @@ export const CommentItems = {
                 arResult.arrayComment = comment.data
             });
         },
-        Delete(id)
+        ParentCall(fmethod, id)
         {
-            const {arResult} = this;
-            runAction('gk:comments.CC.ResponseGkComments.delComment',{
-                data: {
-                    id: id,
-                    path: this.path
-                }
-            }).then(function(comment){
-                arResult.arrayComment = comment.data
-            });
+            console.log(fmethod,id)
+            if (fmethod === 'delete') {
+                const {arResult} = this;
+                runAction('gk:comments.CC.ResponseGkComments.delComment', {
+                    data: {
+                        id: id,
+                        path: this.path
+                    }
+                }).then(function (comment) {
+                    //arResult.arrayComment = comment.data
+                    let object = BX.findChild(BX('comment-body'), {className: 'comment-item' }, true, true);
+                    object.forEach(function (element) {
+                        if (element.getAttribute('data-id') === id) {
+                            element.classList.add('delete')
+                        }
+                    })
+                });
+            }
+            if (fmethod === 'edit') {
+
+            }
         },
-        Edit(id)
-        {
-            console.log(id)
-        }
     },
     template: `
             <div>
@@ -153,7 +161,7 @@ export const CommentItems = {
                         </div>
                     </div>
                 </div>
-                <div class="comment-body">
+                <div class="comment-body" id="comment-body">
                     <template v-for="(post, index) in arResult.arrayComment" :key="index">
                         <Items 
                         :name="post.NAME"
@@ -164,8 +172,8 @@ export const CommentItems = {
                         :timedata="post.timeData"
                         :letter="post.letter"
                         :id="post.ID"
-                        @message-del="Delete"
-                        @message-edit="Edit"/>
+                        :show="true"
+                        @message-callback="ParentCall"/>
                     </template>
                 </div>
             </div>

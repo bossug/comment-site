@@ -29,3 +29,6 @@
     color: #605A5B;
     cursor: pointer;
 }
+.delete {
+    background: rgb(239, 239, 239) !important;
+}

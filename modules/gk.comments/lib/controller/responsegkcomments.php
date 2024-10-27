@@ -123,7 +123,7 @@ class ResponseGkComments extends Controller
     {
         $request = Application::getInstance()->getContext()->getRequest();
         $path = $request->getPost('path');
-        GkCommentsTable::delete($request->getPost('id'));
+        //GkCommentsTable::delete($request->getPost('id'));
         $params = [
             'count_total' => 1,
             'order' => ['DATE_CREATE' => 'ASC'],
