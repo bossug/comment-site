@@ -24,8 +24,8 @@ export const Items = {
                 <div class="text">{{text}}</div>
                 <div class="socnet-button">
                     <i class="fa fa-commenting" aria-hidden="true" title="Комментировать" @click="$emit('messageCallback', 'recomment', id)"></i>
-                    <i class="fa fa-pencil" aria-hidden="true" title="Редактировать" @click="$emit('messageCallback', 'edit', id)"></i>
-                    <i class="fa fa-trash" aria-hidden="true" title="удалить" @click="$emit('messageCallback', 'delete', id)" @click="show = !show"></i>
+                    <i class="fa fa-pencil" aria-hidden="true" title="Редактировать" @click="$emit('messageCallback', 'edit', id)" v-if="(isauthor == true)"></i>
+                    <i class="fa fa-trash" aria-hidden="true" title="удалить" @click="$emit('messageCallback', 'delete', id)" @click="show = !show" v-if="(isauthor == true)"></i>
                 </div>
             </div>
         </transition>

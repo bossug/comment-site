@@ -19,7 +19,8 @@ export const CommentItems = {
                 query: arResult.query
             }
         }).then(function(response){
-            arResult.arrayComment = response.data;
+            arResult.arrayComment = response.data.object;
+            arResult.isUser = response.data.isUser
         })
         return {
             showComment: false,
@@ -35,7 +36,7 @@ export const CommentItems = {
     computed: {
         isUser()
         {
-            return false;
+            return this.arResult.isUser;
         },
         isFormValid() {
             const { NAME, LAST_NAME, EMAIL, text } = this;
@@ -58,6 +59,7 @@ export const CommentItems = {
         buttonSendComment()
         {
             const {arResult} = this;
+            let name = this.NAME;
             runAction('gk:comments.CC.ResponseGkComments.setComment',{
                 data: prepareForm(BX('addComment')).data
             }).then(function(comment){
@@ -172,6 +174,7 @@ export const CommentItems = {
                         :timedata="post.timeData"
                         :letter="post.letter"
                         :id="post.ID"
+                        :isauthor="post.author" 
                         :show="true"
                         @message-callback="ParentCall"/>
                     </template>
