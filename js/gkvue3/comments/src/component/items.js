@@ -42,7 +42,7 @@ export const Items = {
                         <div class="ui-form-row-inline">
                             <div class="ui-form-row">
                                 <div class="ui-form-label">
-                                    <div class="ui-ctl-label-text">Ваше имя</div>
+                                    <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_NAME')}}</div>
                                 </div>
                                 <div class="ui-form-content">
                                     <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
@@ -52,7 +52,7 @@ export const Items = {
                             </div>
                             <div class="ui-form-row">
                                 <div class="ui-form-label">
-                                    <div class="ui-ctl-label-text">Ваша фамилия</div>
+                                    <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_LAST_NAME')}}</div>
                                 </div>
                                 <div class="ui-form-content">
                                     <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
@@ -62,7 +62,7 @@ export const Items = {
                             </div>
                             <div class="ui-form-row">
                                 <div class="ui-form-label">
-                                    <div class="ui-ctl-label-text">Ваш E-mail</div>
+                                    <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_EMAIL')}}</div>
                                 </div>
                                 <div class="ui-form-content">
                                     <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
