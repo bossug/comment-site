@@ -40,6 +40,7 @@ class ResponseGkComments extends Controller
     {
         $request = Application::getInstance()->getContext()->getRequest();
         $path = $request->getPost('path');
+        $commentId = $request->getPost('comment_id');
         $query = $request->getPost('query');
         $list = $request->getPostList()->toArray();
         if ($path === '/' || $path === '') {
@@ -47,10 +48,11 @@ class ResponseGkComments extends Controller
         }
         $fields = [
             'COMMENT' => $list['text'],
+            'COMMENT_ID' => $commentId,
             'SHOW' => true,
             'DATE_CREATE' => new DateTime(),
-            'PATH' => $list['path'],
-            'QUERY' => $list['query'],
+            'PATH' => $list['path'] ?: '',
+            'QUERY' => $list['query'] ?: '',
         ];
         if ($list['USER_ID']) {
             $fields['USER_ID'] = $list['USER_ID'];
@@ -67,7 +69,7 @@ class ResponseGkComments extends Controller
             ];
             if ($path === '/' || $path === '') {
                 // мы на главной
-                $params['filter']['COMMENT_ID'] = 0;
+                //$params['filter']['COMMENT_ID'] = 0;
             } else {
                 $params['filter']['=PATH'] = $path;
             }
@@ -81,7 +83,11 @@ class ResponseGkComments extends Controller
                     $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp() ? 'вчера' : 'сегодня';
                     $obj['letter'] = mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
                     $obj['NAME'] = $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
-                    $result[] = $obj;
+                    if ($obj['COMMENT_ID'] > 0) {
+                        $result[$obj['COMMENT_ID']]['sub'][] = $obj;
+                    } else {
+                        $result[$obj['ID']] = $obj;
+                    }
                 }
             }
         }
@@ -101,7 +107,7 @@ class ResponseGkComments extends Controller
         ];
         if ($path === '/' || $path === '') {
             // мы на главной
-            $params['filter']['COMMENT_ID'] = 0;
+            //$params['filter']['COMMENT_ID'] = 0;
         } else {
             $params['filter']['=PATH'] = $path;
         }
@@ -116,7 +122,11 @@ class ResponseGkComments extends Controller
                 $obj['letter'] = mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
                 $obj['NAME'] = $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
                 $obj['author'] = $isAdmin;
-                $result[] = $obj;
+                if ($obj['COMMENT_ID'] > 0) {
+                    $result[$obj['COMMENT_ID']]['sub'][] = $obj;
+                } else {
+                    $result[$obj['ID']] = $obj;
+                }
             }
         }
         return [

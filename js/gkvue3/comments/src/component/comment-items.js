@@ -67,9 +67,18 @@ export const CommentItems = {
                 arResult.arrayComment = comment.data
             });
         },
+        buttonSendSubComment(data)
+        {
+            const {arResult} = this;
+            runAction('gk:comments.CC.ResponseGkComments.setComment',{
+                data: data
+            }).then(function(comment){
+                $('.fa-close').trigger('click')
+                arResult.arrayComment = comment.data
+            });
+        },
         ParentCall(fmethod, id)
         {
-            console.log(fmethod,id)
             if (fmethod === 'delete') {
                 const {arResult} = this;
                 runAction('gk:comments.CC.ResponseGkComments.delComment', {
@@ -165,18 +174,37 @@ export const CommentItems = {
                 </div>
                 <div class="comment-body" id="comment-body">
                     <template v-for="(post, index) in arResult.arrayComment" :key="index">
-                        <Items 
-                        :name="post.NAME"
-                        :text="post.COMMENT"
-                        :icon="post.icon"
-                        :elementid="post.COMMENT_ID"
-                        :data="post.data"
-                        :timedata="post.timeData"
-                        :letter="post.letter"
-                        :id="post.ID"
-                        :isauthor="post.author" 
-                        :show="true"
-                        @message-callback="ParentCall"/>
+                        <Items  v-if="(post.COMMENT_ID == 0)" 
+                            :name="post.NAME"
+                            :text="post.COMMENT"
+                            :icon="post.icon"
+                            :elementid="post.COMMENT_ID"
+                            :data="post.data"
+                            :timedata="post.timeData"
+                            :letter="post.letter"
+                            :id="post.ID"
+                            :isauthor="post.author" 
+                            :show="true"
+                            :child="false" 
+                            :path="path"
+                            @message-callback="ParentCall"
+                            @sub-comment="buttonSendSubComment"
+                        />
+                        <template v-if="post.sub"  v-for="(spost, sindex) in post.sub" :key="sindex">
+                            <Items 
+                                :name="spost.NAME"
+                                :text="spost.COMMENT"
+                                :icon="spost.icon"
+                                :elementid="spost.COMMENT_ID"
+                                :data="spost.data"
+                                :timedata="spost.timeData"
+                                :letter="spost.letter"
+                                :id="spost.ID"
+                                :isauthor="spost.author" 
+                                :show="true" 
+                                :child="true"
+                                @message-callback="ParentCall"/>
+                        </template>
                     </template>
                 </div>
             </div>
