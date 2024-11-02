@@ -75,12 +75,15 @@ class ResponseGkComments extends Controller
             }
             $objs = GkCommentsTable::getList($params);
             $result = [];
-            $objTime = new DateTime();
+            $objTime = $objTimeLast = new DateTime();
             $objTime->add('-1 days');
+            $objTimeLast->add('-2 days');
             if ($objs->getCount() > 0) {
                 foreach ($objs->fetchAll() as &$obj) {
                     $obj['data'] = $obj['DATE_CREATE']->format('d.m.Y');
-                    $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp() ? 'вчера' : 'сегодня';
+                    $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp()
+                        ? ($obj['DATE_CREATE']->getTimestamp() < $objTimeLast->getTimestamp() ? $obj['DATE_CREATE']->format('d.m.Y') : 'вчера')
+                        : 'сегодня';
                     $obj['letter'] = mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
                     $obj['NAME'] = $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
                     if ($obj['COMMENT_ID'] > 0) {
@@ -113,12 +116,15 @@ class ResponseGkComments extends Controller
         }
         $objs = GkCommentsTable::getList($params);
         $result = [];
-        $objTime = new DateTime();
+        $objTime = $objTimeLast = new DateTime();
         $objTime->add('-1 days');
+        $objTimeLast->add('-2 days');
         if ($objs->getCount() > 0) {
             foreach ($objs->fetchAll() as &$obj) {
                 $obj['data'] = $obj['DATE_CREATE']->format('d.m.Y');
-                $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp() ? 'вчера' : 'сегодня';
+                $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp()
+                    ? ($obj['DATE_CREATE']->getTimestamp() < $objTimeLast->getTimestamp() ? $obj['DATE_CREATE']->format('d.m.Y') : 'вчера')
+                    : 'сегодня';
                 $obj['letter'] = mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
                 $obj['NAME'] = $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
                 $obj['author'] = $isAdmin;
