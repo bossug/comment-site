@@ -48,7 +48,6 @@
             query: arResult.query
           }
         }).then(function (response) {
-          console.log(response.data.object);
           arResult.arrayComment = response.data.object;
           arResult.isUser = response.data.isUser;
         });
@@ -93,7 +92,6 @@
           });
         },
         buttonSendSubComment: function buttonSendSubComment(data) {
-          //console.log(data)
           var arResult = this.arResult;
           runAction('gk:comments.CC.ResponseGkComments.setComment', {
             data: data
@@ -103,7 +101,6 @@
           });
         },
         ParentCall: function ParentCall(fmethod, id) {
-          //console.log(fmethod,id)
           if (fmethod === 'delete') {
             var arResult = this.arResult;
             runAction('gk:comments.CC.ResponseGkComments.delComment', {
