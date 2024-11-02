@@ -1,6 +1,6 @@
 
 export const Items = {
-    props: ['name', 'letter', 'text', 'icon', 'data', 'timedata', 'elementId', 'id', 'isauthor', 'show', 'child', 'path'],
+    props: ['name', 'letter', 'text', 'icon', 'data', 'timedata', 'elementId', 'id', 'isauthor', 'show', 'child', 'path', 'userid', 'isuser'],
     data() {
         return {
             show: true,
@@ -13,11 +13,11 @@ export const Items = {
         }
     },
     methods: {
-        buttonSendSubComment(id, path)
+        buttonSendSubComment(id, path, userid)
         {
             this.$emit('subComment', {
                 NAME: this.NAME, LAST_NAME: this.LAST_NAME,
-                EMAIL: this.EMAIL, text: this.subtext, comment_id: id, path: path
+                EMAIL: this.EMAIL, text: this.subtext, comment_id: id, path: path, USER_ID: userid
             })
         }
     },
@@ -39,52 +39,70 @@ export const Items = {
                 <div class="text">{{text}}</div>
                 <div v-if="comment" class="subBlock">
                     <form class="ui-ctl-w100">
-                        <div class="ui-form-row-inline">
-                            <div class="ui-form-row">
-                                <div class="ui-form-label">
-                                    <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_NAME')}}</div>
+                        <template v-if="!isuser">
+                            <div class="ui-form-row-inline">
+                                <div class="ui-form-row">
+                                    <div class="ui-form-label">
+                                        <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_NAME')}}</div>
+                                    </div>
+                                    <div class="ui-form-content">
+                                        <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
+                                            <input type="text" v-model="NAME" name="NAME" class="ui-ctl-element">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="ui-form-content">
-                                    <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
-                                        <input type="text" v-model="NAME" name="NAME" class="ui-ctl-element">
+                                <div class="ui-form-row">
+                                    <div class="ui-form-label">
+                                        <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_LAST_NAME')}}</div>
+                                    </div>
+                                    <div class="ui-form-content">
+                                        <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
+                                            <input type="text" v-model="LAST_NAME" name="LAST_NAME" class="ui-ctl-element">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="ui-form-row">
+                                    <div class="ui-form-label">
+                                        <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_EMAIL')}}</div>
+                                    </div>
+                                    <div class="ui-form-content">
+                                        <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
+                                            <input type="text" v-model="EMAIL" name="EMAIL" class="ui-ctl-element">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="ui-form-row">
                                 <div class="ui-form-label">
-                                    <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_LAST_NAME')}}</div>
+                                    <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_COMMENT')}}</div>
                                 </div>
                                 <div class="ui-form-content">
-                                    <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
-                                        <input type="text" v-model="LAST_NAME" name="LAST_NAME" class="ui-ctl-element">
+                                    <div class="ui-ctl-xs ui-ctl-textarea ui-ctl-w100">
+                                        <textarea v-model="subtext" name="text" class="ui-ctl-element require"></textarea>
                                     </div>
                                 </div>
-                            </div>
+                                <div class="ui-form-content mt-3">
+                                    <input class="ui-btn ui-btn-success" type="button" @click="buttonSendSubComment(id, path, 0)" :value="$Bitrix.Loc.getMessage('SEND_COMMENT')" />
+                                </div>
+                            <div>
+                        </template>
+                        <template v-else>
                             <div class="ui-form-row">
                                 <div class="ui-form-label">
-                                    <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_EMAIL')}}</div>
+                                    <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_COMMENT')}}</div>
                                 </div>
                                 <div class="ui-form-content">
-                                    <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
-                                        <input type="text" v-model="EMAIL" name="EMAIL" class="ui-ctl-element">
+                                    <div class="ui-ctl-xs ui-ctl-textarea ui-ctl-w100">
+                                        <textarea v-model="subtext" class="ui-ctl-element require"></textarea>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="ui-form-row">
-                            <div class="ui-form-label">
-                                <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_COMMENT')}}</div>
-                            </div>
-                            <div class="ui-form-content">
-                                <div class="ui-ctl-xs ui-ctl-textarea ui-ctl-w100">
-                                    <textarea v-model="subtext" name="text" class="ui-ctl-element require"></textarea>
+                                <div class="ui-form-content mt-3">
+                                    <input class="ui-btn ui-btn-success" type="button" @click="buttonSendSubComment(id, path, userid)" :value="$Bitrix.Loc.getMessage('SEND_COMMENT')" />
                                 </div>
-                            </div>
-                            <div class="ui-form-content mt-3">
-                                <input class="ui-btn ui-btn-success" type="button" @click="buttonSendSubComment(id, path)" :value="$Bitrix.Loc.getMessage('SEND_COMMENT')" />
-                            </div>
-                        <div>
+                            <div>
+                        </template>
                     </form>
+                    
                 </div>
                 <div class="socnet-button">
                     <i class="fa fa-close" v-if="comment" @click="comment = !comment"></i>

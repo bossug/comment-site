@@ -40,6 +40,8 @@ class ResponseGkComments extends Controller
     {
         $request = Application::getInstance()->getContext()->getRequest();
         $path = $request->getPost('path');
+        $userId = \Bitrix\Main\Engine\CurrentUser::get()->getId();
+        $isAdmin = \Bitrix\Main\Engine\CurrentUser::get()->isAdmin();
         $commentId = $request->getPost('comment_id');
         $query = $request->getPost('query');
         $list = $request->getPostList()->toArray();
@@ -48,7 +50,7 @@ class ResponseGkComments extends Controller
         }
         $fields = [
             'COMMENT' => $list['text'],
-            'COMMENT_ID' => $commentId,
+            'COMMENT_ID' => $commentId ?? 0,
             'SHOW' => true,
             'DATE_CREATE' => new DateTime(),
             'PATH' => $list['path'] ?: '',
@@ -61,18 +63,33 @@ class ResponseGkComments extends Controller
             $fields['USER_LAST_NAME'] = $list['LAST_NAME'];
             $fields['USER_EMAIL'] = $list['EMAIL'];
         }
+
         $response = GkCommentsTable::add($fields);
         if ($response->isSuccess()) {
             $params = [
                 'count_total' => 1,
                 'order' => ['DATE_CREATE' => 'ASC'],
+                'select' => ['*',
+                    'USERS_AVATAR' => 'USERS.PERSONAL_PHOTO',
+                    'USERS_NAME' => 'USERS.NAME',
+                    'USERS_LAST_NAME' => 'USERS.LAST_NAME',
+                    'USERS_EMAIL' => 'USERS.EMAIL'
+                ],
+                'runtime' => [
+                    (new \Bitrix\Main\ORM\Fields\Relations\Reference(
+                        'USERS',
+                        \Bitrix\Main\UserTable::class,
+                        \Bitrix\Main\ORM\Query\Join::on('this.USER_ID', 'ref.ID')
+                    ))
+                ]
             ];
             if ($path === '/' || $path === '') {
                 // мы на главной
                 //$params['filter']['COMMENT_ID'] = 0;
             } else {
-                $params['filter']['=PATH'] = $path;
+                //$params['filter']['=PATH'] = $path;
             }
+            $params['filter']['=PATH'] = $path;
             $objs = GkCommentsTable::getList($params);
             $result = [];
             $objTime = $objTimeLast = new DateTime();
@@ -84,8 +101,12 @@ class ResponseGkComments extends Controller
                     $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp()
                         ? ($obj['DATE_CREATE']->getTimestamp() < $objTimeLast->getTimestamp() ? $obj['DATE_CREATE']->format('d.m.Y') : 'вчера')
                         : 'сегодня';
-                    $obj['letter'] = mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
-                    $obj['NAME'] = $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
+                    $obj['letter'] = $obj['USER_ID'] > 0
+                        ? mb_substr($obj['USERS_LAST_NAME'], 0, 1).mb_substr($obj['USERS_NAME'], 0, 1)
+                        : mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
+                    $obj['NAME'] = $obj['USER_ID'] > 0 ? $obj['USERS_LAST_NAME'] . ' ' . $obj['USERS_NAME'] : $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
+                    $obj['icon'] = $obj['USERS_AVATAR'];
+                    $obj['author'] = ($userId > 0 && $userId == $obj['USER_ID']) || $isAdmin;
                     if ($obj['COMMENT_ID'] > 0) {
                         $result[$obj['COMMENT_ID']]['sub'][] = $obj;
                     } else {
@@ -94,7 +115,11 @@ class ResponseGkComments extends Controller
                 }
             }
         }
-        return $result;
+        return [
+            'object' => $result,
+            'userId' => $userId,
+            'isAdmin' => $isAdmin
+        ];
     }
     public function getCommentAction()
     {
@@ -107,13 +132,27 @@ class ResponseGkComments extends Controller
         $params = [
             'count_total' => 1,
             'order' => ['DATE_CREATE' => 'ASC'],
+            'select' => ['*',
+                'USERS_AVATAR' => 'USERS.PERSONAL_PHOTO',
+                'USERS_NAME' => 'USERS.NAME',
+                'USERS_LAST_NAME' => 'USERS.LAST_NAME',
+                'USERS_EMAIL' => 'USERS.EMAIL'
+            ],
+            'runtime' => [
+                (new \Bitrix\Main\ORM\Fields\Relations\Reference(
+                    'USERS',
+                    \Bitrix\Main\UserTable::class,
+                    \Bitrix\Main\ORM\Query\Join::on('this.USER_ID', 'ref.ID')
+                ))
+            ]
         ];
         if ($path === '/' || $path === '') {
             // мы на главной
             //$params['filter']['COMMENT_ID'] = 0;
         } else {
-            $params['filter']['=PATH'] = $path;
+            //$params['filter']['=PATH'] = $path;
         }
+        $params['filter']['=PATH'] = $path;
         $objs = GkCommentsTable::getList($params);
         $result = [];
         $objTime = $objTimeLast = new DateTime();
@@ -125,9 +164,12 @@ class ResponseGkComments extends Controller
                 $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp()
                     ? ($obj['DATE_CREATE']->getTimestamp() < $objTimeLast->getTimestamp() ? $obj['DATE_CREATE']->format('d.m.Y') : 'вчера')
                     : 'сегодня';
-                $obj['letter'] = mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
-                $obj['NAME'] = $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
-                $obj['author'] = $isAdmin;
+                $obj['letter'] = $obj['USER_ID'] > 0
+                    ? mb_substr($obj['USERS_LAST_NAME'], 0, 1).mb_substr($obj['USERS_NAME'], 0, 1)
+                    : mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
+                $obj['NAME'] = $obj['USER_ID'] > 0 ? $obj['USERS_LAST_NAME'] . ' ' . $obj['USERS_NAME'] : $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
+                $obj['icon'] = $obj['USERS_AVATAR'];
+                $obj['author'] = ($userId > 0 && $userId == $obj['USER_ID']) || $isAdmin;
                 if ($obj['COMMENT_ID'] > 0) {
                     $result[$obj['COMMENT_ID']]['sub'][] = $obj;
                 } else {
@@ -137,7 +179,8 @@ class ResponseGkComments extends Controller
         }
         return [
             'object' => $result,
-            'isUser' => false
+            'userId' => $userId,
+            'isAdmin' => $isAdmin
         ];
     }
 
