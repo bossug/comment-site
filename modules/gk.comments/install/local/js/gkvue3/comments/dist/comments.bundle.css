@@ -51,6 +51,9 @@
 }
 .comment-body .comment-item .header-top {
     margin-bottom: 12px;
+    background: #f8f9fa;
+    border-bottom-left-radius: 25px;
+    border-top-left-radius: 25px;
 }
 .comment-body .comment-item .header-top .f-left {
     display: -webkit-box;
@@ -82,8 +85,17 @@
     cursor: default;
     text-transform: uppercase;
     font-weight: 700;
-    font-size: 27px;
+    font-size: 20px;
 }
 #addComment {
 
+}
+.line-block-form {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: baseline;
+        -ms-flex-align: baseline;
+            align-items: baseline;
+    gap: 10px;
 }

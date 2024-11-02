@@ -5,3 +5,6 @@ $MESS['WRITE_TO_COMMENT'] = 'Написать комментарий';
 $MESS['CLOSE_COMMENT'] = 'Скрыть';
 $MESS['YOUR_COMMENT'] = 'Ваш комментарий';
 $MESS['SEND_COMMENT'] = 'Отправить';
+$MESS['YOUR_NAME'] = 'Ваше имя';
+$MESS['YOUR_LAST_NAME'] = 'Ваша фамилия';
+$MESS['YOUR_EMAIL'] = 'Ваш E-mail';

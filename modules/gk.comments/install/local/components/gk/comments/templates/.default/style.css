@@ -18,3 +18,26 @@
     border-radius: 10px;
     width: 90%;
 }
+.socnet-button {
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
+    column-gap: 20px;
+    color: #999;
+}
+.socnet-button i:hover {
+    color: #605A5B;
+    cursor: pointer;
+}
+.delete {
+    background: rgb(239, 239, 239) !important;
+}
+.subBlock {
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    border: solid 1px #ccc;
+}
+.child-item.comment-item {
+    margin-left: 74px;
+}
