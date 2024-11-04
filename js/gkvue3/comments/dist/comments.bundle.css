@@ -1,0 +1,101 @@
+.ui-form {
+    padding: 0;
+}
+.comment-header, .comment-body {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    padding: 1rem;
+}
+.comment-body {
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+            flex-direction: column;
+    row-gap: 20px;
+}
+.comment-header .comment-button-body {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    width: 100%;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+            flex-direction: column;
+    min-height: 20px;
+    padding: 16px;
+    border-radius: 12px;
+    background: #f0f2f4;
+}
+.comment-header .comment-button-body .button-body {
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: row;
+            flex-direction: row;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    width: 100%;
+    -webkit-box-pack: justify;
+        -ms-flex-pack: justify;
+            justify-content: space-between;
+
+}
+.comment-header .comment-button-body .link-comment {}
+
+.comment-body .comment-item {
+    background: #f7fbed;
+    padding: 10px;
+    border-radius: 10px;
+}
+.comment-body .comment-item .header-top {
+    margin-bottom: 12px;
+    background: #f8f9fa;
+    border-bottom-left-radius: 25px;
+    border-top-left-radius: 25px;
+}
+.comment-body .comment-item .header-top .f-left {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
+    gap: 12px;
+}
+.comment-body .comment-item .header-top .f-left .f-circle {
+    background-color: #e0f2fe;
+    font-size: 28px;
+    border-radius: 50%;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
+    min-width: 48px;
+    min-height: 48px;
+}
+.header-top .f-left .f-circle .letter {
+    color: #0169a3;
+    cursor: default;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 20px;
+}
+#addComment {
+
+}
+.line-block-form {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: baseline;
+        -ms-flex-align: baseline;
+            align-items: baseline;
+    gap: 10px;
+}
