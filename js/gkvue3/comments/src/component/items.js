@@ -9,7 +9,19 @@ export const Items = {
             LAST_NAME: '',
             EMAIL: '',
             subtext: '',
-            comment_id: 0
+            comment_id: 0,
+            isEditingDisabled: false
+        }
+    },
+    mounted() {
+        // Проверяем LocalStorage на наличие данных CUSTOM_COMMENT
+        const customComment = localStorage.getItem('CUSTOM_COMMENT');
+        if (customComment) {
+            const { NAME, LAST_NAME, EMAIL } = JSON.parse(customComment);
+            this.NAME = NAME || '';
+            this.LAST_NAME = LAST_NAME || '';
+            this.EMAIL = EMAIL || '';
+            this.isEditingDisabled = true; // зыкрытье редактирование полей
         }
     },
     methods: {
@@ -47,7 +59,12 @@ export const Items = {
                                     </div>
                                     <div class="ui-form-content">
                                         <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
-                                            <input type="text" v-model="NAME" name="NAME" class="ui-ctl-element">
+                                            <input 
+                                                :disabled="isEditingDisabled"
+                                                type="text" 
+                                                v-model="NAME" 
+                                                name="NAME" 
+                                                class="ui-ctl-element">
                                         </div>
                                     </div>
                                 </div>
@@ -57,7 +74,12 @@ export const Items = {
                                     </div>
                                     <div class="ui-form-content">
                                         <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
-                                            <input type="text" v-model="LAST_NAME" name="LAST_NAME" class="ui-ctl-element">
+                                            <input 
+                                                :disabled="isEditingDisabled"
+                                                type="text" 
+                                                v-model="LAST_NAME" 
+                                                name="LAST_NAME" 
+                                                class="ui-ctl-element">
                                         </div>
                                     </div>
                                 </div>
@@ -67,7 +89,12 @@ export const Items = {
                                     </div>
                                     <div class="ui-form-content">
                                         <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
-                                            <input type="text" v-model="EMAIL" name="EMAIL" class="ui-ctl-element">
+                                            <input
+                                                :disabled="isEditingDisabled"
+                                                type="text" 
+                                                v-model="EMAIL" 
+                                                name="EMAIL" 
+                                                class="ui-ctl-element">
                                         </div>
                                     </div>
                                 </div>
