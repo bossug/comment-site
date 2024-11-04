@@ -153,7 +153,9 @@ export const CommentItems = {
                     </div>
                     <div class="comment-button-body mb-3" v-else>
                         <div class="button-body">
-                            <div class="title">{{$Bitrix.Loc.getMessage('USER_TITLE')}}</div>
+                            <div class="title">
+                                <i class="fa fa-user" aria-hidden="true"></i>
+                            </div>
                             <div class="blockButton">
                                 <div class="ui-ctl-label-text" @click="openCommentNotAuth" v-if="!showComment" role="button"><i class="fa fa-comment"></i> {{$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')}}</div>
                                 <div class="ui-ctl-label-text" @click="closeCommentAuth" v-if="showComment" id="closeComments" role="button"><i class="fa fa-comment"></i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}</div>
