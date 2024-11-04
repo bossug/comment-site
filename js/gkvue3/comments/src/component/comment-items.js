@@ -13,6 +13,10 @@ export const CommentItems = {
         const arResult = reactive({});
         arResult.path = url.pathname;
         arResult.query = url.search;
+
+        const storedData = JSON.parse(localStorage.getItem('CUSTOM_COMMENT'));
+        const isDataReadOnly = storedData !== null; // чекнем нужно ли закрыть от редактирования поля
+
         runAction('gk:comments.CC.ResponseGkComments.getComment',{
             data: {
                 path: arResult.path,
@@ -29,10 +33,11 @@ export const CommentItems = {
             arResult,
             path: arResult.path,
             query: arResult.query,
-            NAME: null,
-            LAST_NAME: null,
-            EMAIL: null,
+            NAME: storedData ? storedData.NAME : null,
+            LAST_NAME: storedData ? storedData.LAST_NAME : null,
+            EMAIL: storedData ? storedData.EMAIL : null,
             text: null,
+            isDataReadOnly: isDataReadOnly
         }
     },
     computed: {
@@ -69,6 +74,19 @@ export const CommentItems = {
         buttonSendComment(path, query, userId)
         {
             const {arResult} = this;
+
+            // Сохранение данных в LocalStorage на один год
+            if (!this.isUser) {  // Только для неавторизованных пользователей
+                const expirationDate = new Date();
+                expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+                localStorage.setItem('CUSTOM_COMMENT', JSON.stringify({
+                    NAME: this.NAME,
+                    LAST_NAME: this.LAST_NAME,
+                    EMAIL: this.EMAIL,
+                    expires: expirationDate.toISOString()
+                }));
+            }
+
             runAction('gk:comments.CC.ResponseGkComments.setComment',{
                 data: {
                     NAME: this.NAME,
@@ -170,7 +188,12 @@ export const CommentItems = {
                                         </div>
                                         <div class="ui-form-content">
                                             <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
-                                                <input type="text" v-model="NAME" name="NAME" class="ui-ctl-element">
+                                                <input
+                                                     :disabled="isDataReadOnly"
+                                                     type="text" 
+                                                     v-model="NAME" 
+                                                     name="NAME" 
+                                                     class="ui-ctl-element">
                                             </div>
                                         </div>
                                     </div>
@@ -180,7 +203,7 @@ export const CommentItems = {
                                         </div>
                                         <div class="ui-form-content">
                                             <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
-                                                <input type="text" v-model="LAST_NAME" name="LAST_NAME" class="ui-ctl-element">
+                                                <input :disabled="isDataReadOnly" type="text" v-model="LAST_NAME" name="LAST_NAME" class="ui-ctl-element">
                                             </div>
                                         </div>
                                     </div>
@@ -190,7 +213,7 @@ export const CommentItems = {
                                         </div>
                                         <div class="ui-form-content">
                                             <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
-                                                <input type="text" v-model="EMAIL" name="EMAIL" class="ui-ctl-element">
+                                                <input :disabled="isDataReadOnly" type="text" v-model="EMAIL" name="EMAIL" class="ui-ctl-element">
                                             </div>
                                         </div>
                                     </div>
