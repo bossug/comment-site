@@ -41,6 +41,17 @@ export const CommentItems = {
         }
     },
     computed: {
+        userInitials() {
+            const storedData = JSON.parse(localStorage.getItem('CUSTOM_COMMENT'));
+            if (storedData && storedData.NAME && storedData.LAST_NAME) {
+                return `${storedData.LAST_NAME.charAt(0)}${storedData.NAME.charAt(0)}`.toUpperCase();
+            }
+            return '';
+        },
+        hasUserData() {
+            const storedData = JSON.parse(localStorage.getItem('CUSTOM_COMMENT'));
+            return storedData !== null;
+        },
         isUser()
         {
             return this.arResult.userId > 0;
@@ -85,6 +96,7 @@ export const CommentItems = {
                     EMAIL: this.EMAIL,
                     expires: expirationDate.toISOString()
                 }));
+                this.isDataReadOnly = true;
             }
 
             runAction('gk:comments.CC.ResponseGkComments.setComment',{
@@ -98,10 +110,10 @@ export const CommentItems = {
                     USER_ID: userId
                 }
             }).then(function(comment){
-                $('#closeComments').trigger('click')
-                arResult.arrayComment = comment.data.object
-                arResult.userId = response.data.userId
-                arResult.isAdmin = response.data.isAdmin
+                $('#closeComments').trigger('click');
+                arResult.arrayComment = comment.data.object;
+                arResult.userId = response.data.userId;
+                arResult.isAdmin = response.data.isAdmin;
             });
         },
         buttonSendSubComment(data)
@@ -171,8 +183,17 @@ export const CommentItems = {
                     </div>
                     <div class="comment-button-body mb-3" v-else>
                         <div class="button-body">
-                            <div class="title">
-                                <i class="fa fa-user" aria-hidden="true"></i>
+                            <div class="title header-top">
+                                <template v-if="isDataReadOnly">
+                                    <div class="f-left">
+                                        <div class="f-circle">
+                                            <div class="letter">{{ userInitials }}</div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    <i class="fa fa-user" aria-hidden="true"></i>
+                                </template>
                             </div>
                             <div class="blockButton">
                                 <div class="ui-ctl-label-text" @click="openCommentNotAuth" v-if="!showComment" role="button"><i class="fa fa-comment"></i> {{$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')}}</div>
