@@ -1,5 +1,4 @@
 
-
 export const CommentFormNoauth = {
     props: ['showComment', 'path', 'query', 'child', 'id'],
     data()
