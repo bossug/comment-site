@@ -108,7 +108,6 @@ export const CommentItems = {
                         path: this.path
                     }
                 }).then(function (comment) {
-                    //arResult.arrayComment = comment.data
                     let object = BX.findChild(BX('comment-body'), {className: 'comment-item' }, true, true);
                     object.forEach(function (element) {
                         if (element.getAttribute('data-id') === id) {
