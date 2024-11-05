@@ -1,11 +1,13 @@
 import {Dom, Loc} from 'main.core';
-import {Items} from './items'
+import {Items} from './items';
+import {CommentForm} from './comment-form';
 import {reactive} from "ui.vue3";
 const {runAction, prepareForm} = BX.ajax;
 export const CommentItems = {
     components:
     {
-        Items
+        Items,
+        CommentForm
     },
     data()
     {
@@ -13,10 +15,6 @@ export const CommentItems = {
         const arResult = reactive({});
         arResult.path = url.pathname;
         arResult.query = url.search;
-
-        const storedData = JSON.parse(localStorage.getItem('CUSTOM_COMMENT'));
-        const isDataReadOnly = storedData !== null; // чекнем нужно ли закрыть от редактирования поля
-
         runAction('gk:comments.CC.ResponseGkComments.getComment',{
             data: {
                 path: arResult.path,
@@ -33,25 +31,13 @@ export const CommentItems = {
             arResult,
             path: arResult.path,
             query: arResult.query,
-            NAME: storedData ? storedData.NAME : null,
-            LAST_NAME: storedData ? storedData.LAST_NAME : null,
-            EMAIL: storedData ? storedData.EMAIL : null,
+            NAME: null,
+            LAST_NAME: null,
+            EMAIL: null,
             text: null,
-            isDataReadOnly: isDataReadOnly
         }
     },
     computed: {
-        userInitials() {
-            const storedData = JSON.parse(localStorage.getItem('CUSTOM_COMMENT'));
-            if (storedData && storedData.NAME && storedData.LAST_NAME) {
-                return `${storedData.LAST_NAME.charAt(0)}${storedData.NAME.charAt(0)}`.toUpperCase();
-            }
-            return '';
-        },
-        hasUserData() {
-            const storedData = JSON.parse(localStorage.getItem('CUSTOM_COMMENT'));
-            return storedData !== null;
-        },
         isUser()
         {
             return this.arResult.userId > 0;
@@ -70,6 +56,9 @@ export const CommentItems = {
         },
     },
     methods: {
+        updateComments(newComments) {
+            this.arResult.arrayComment = newComments;
+        },
         openCommentNotAuth()
         {
             this.showComment = true;
@@ -85,20 +74,6 @@ export const CommentItems = {
         buttonSendComment(path, query, userId)
         {
             const {arResult} = this;
-
-            // Сохранение данных в LocalStorage на один год
-            if (!this.isUser) {  // Только для неавторизованных пользователей
-                const expirationDate = new Date();
-                expirationDate.setFullYear(expirationDate.getFullYear() + 1);
-                localStorage.setItem('CUSTOM_COMMENT', JSON.stringify({
-                    NAME: this.NAME,
-                    LAST_NAME: this.LAST_NAME,
-                    EMAIL: this.EMAIL,
-                    expires: expirationDate.toISOString()
-                }));
-                this.isDataReadOnly = true;
-            }
-
             runAction('gk:comments.CC.ResponseGkComments.setComment',{
                 data: {
                     NAME: this.NAME,
@@ -110,10 +85,10 @@ export const CommentItems = {
                     USER_ID: userId
                 }
             }).then(function(comment){
-                $('#closeComments').trigger('click');
-                arResult.arrayComment = comment.data.object;
-                arResult.userId = response.data.userId;
-                arResult.isAdmin = response.data.isAdmin;
+                $('#closeComments').trigger('click')
+                arResult.arrayComment = comment.data.object
+                arResult.userId = response.data.userId
+                arResult.isAdmin = response.data.isAdmin
             });
         },
         buttonSendSubComment(data)
@@ -164,95 +139,33 @@ export const CommentItems = {
                             <div class="ui-ctl-label-text" @click="closeCommentAuth" v-if="showComment" id="closeComments" role="button"><i class="fa fa-close"></i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}</div>
                         </div>
                         <div class="ui-form form-body" v-if="showComment">
-                            <form id="addComment" class="ui-ctl-w100" @submit.prevent="buttonSendComment(path,query,arResult.userId)">
-                                <div class="ui-form-row">
-                                    <div class="ui-form-label">
-                                        <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_COMMENT')}}</div>
-                                    </div>
-                                    <div class="ui-form-content">
-                                        <div class="ui-ctl-xs ui-ctl-textarea ui-ctl-w100">
-                                            <textarea v-model="text" name="text" class="ui-ctl-element require"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="ui-form-content mt-3">
-                                        <input class="ui-btn ui-btn-success" type="submit" :value="$Bitrix.Loc.getMessage('SEND_COMMENT')" />
-                                    </div>
-                                <div>
-                            </form>
+                            <comment-form 
+                                :path="path" 
+                                :query="query" 
+                                :user-id="arResult.userId"
+                                :is-user="isUser"
+                                :is-show-comment="showComment"
+                                @comment-sent="updateComments"
+                            />
                         </div>
                     </div>
                     <div class="comment-button-body mb-3" v-else>
                         <div class="button-body">
-                            <div class="title header-top">
-                                <template v-if="isDataReadOnly">
-                                    <div class="f-left">
-                                        <div class="f-circle">
-                                            <div class="letter">{{ userInitials }}</div>
-                                        </div>
-                                    </div>
-                                </template>
-                                <template v-else>
-                                    <i class="fa fa-user" aria-hidden="true"></i>
-                                </template>
-                            </div>
+                            <div class="title">{{$Bitrix.Loc.getMessage('USER_TITLE')}}</div>
                             <div class="blockButton">
                                 <div class="ui-ctl-label-text" @click="openCommentNotAuth" v-if="!showComment" role="button"><i class="fa fa-comment"></i> {{$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')}}</div>
                                 <div class="ui-ctl-label-text" @click="closeCommentAuth" v-if="showComment" id="closeComments" role="button"><i class="fa fa-comment"></i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}</div>
                             </div>
                         </div>
                         <div class="ui-form form-body" v-if="showComment">
-                            <form id="addComment" class="ui-ctl-w100" @submit.prevent="buttonSendComment(path, query, 0)">
-                                <div class="ui-form-row-inline">
-                                    <div class="ui-form-row">
-                                        <div class="ui-form-label">
-                                            <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_NAME')}}</div>
-                                        </div>
-                                        <div class="ui-form-content">
-                                            <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
-                                                <input
-                                                     :disabled="isDataReadOnly"
-                                                     type="text" 
-                                                     v-model="NAME" 
-                                                     name="NAME" 
-                                                     class="ui-ctl-element">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="ui-form-row">
-                                        <div class="ui-form-label">
-                                            <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_LAST_NAME')}}</div>
-                                        </div>
-                                        <div class="ui-form-content">
-                                            <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
-                                                <input :disabled="isDataReadOnly" type="text" v-model="LAST_NAME" name="LAST_NAME" class="ui-ctl-element">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="ui-form-row">
-                                        <div class="ui-form-label">
-                                            <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_EMAIL')}}</div>
-                                        </div>
-                                        <div class="ui-form-content">
-                                            <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
-                                                <input :disabled="isDataReadOnly" type="text" v-model="EMAIL" name="EMAIL" class="ui-ctl-element">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="ui-form-row">
-                                    <div class="ui-form-label">
-                                        <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_COMMENT')}}</div>
-                                    </div>
-                                    <div class="ui-form-content">
-                                        <div class="ui-ctl-xs ui-ctl-textarea ui-ctl-w100">
-                                            <textarea v-model="text" name="text" class="ui-ctl-element require"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="ui-form-content mt-3">
-                                        <input class="ui-btn ui-btn-success" type="submit" :value="$Bitrix.Loc.getMessage('SEND_COMMENT')" />
-                                    </div>
-                                <div>
-                            </form>
+                            <comment-form 
+                                :path="path" 
+                                :query="query" 
+                                :user-id="0"
+                                :is-user="false"
+                                :is-show-comment="showComment"
+                                @comment-sent="updateComments"
+                            />
                         </div>
                     </div>
                 </div>
