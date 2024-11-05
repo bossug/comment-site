@@ -21,7 +21,7 @@ export const CommentItems = {
                 query: arResult.query
             }
         }).then(function(response){
-            console.log(response.data)
+            //console.log(response.data)
             arResult.arrayComment = response.data.object;
             arResult.userId = response.data.userId
             arResult.isAdmin = response.data.isAdmin
@@ -61,12 +61,10 @@ export const CommentItems = {
         openCommentNotAuth()
         {
             this.showComment = true;
-            console.log(this.showComment)
         },
         closeCommentAuth()
         {
             this.showComment = false;
-            console.log(this.showComment)
         },
         openCommentAuth()
         {
@@ -75,23 +73,22 @@ export const CommentItems = {
         buttonSendComment(data)
         {
             const {arResult} = this;
-            console.log(data)
-            /*runAction('gk:comments.CC.ResponseGkComments.setComment',{
+            runAction('gk:comments.CC.ResponseGkComments.setComment',{
                 data: {
                     NAME: data.NAME,
                     LAST_NAME: data.LAST_NAME,
                     EMAIL: data.EMAIL,
                     text: data.text,
-                    path: path,
-                    query: query,
-                    USER_ID: arResult.userId
+                    path: data.path,
+                    USER_ID: data.userId,
+                    comment_id: data.comment_id
                 }
             }).then(function(comment){
-                $('#closeComments').trigger('click')
+                $('.closeComments').trigger('click')
                 arResult.arrayComment = comment.data.object
-                arResult.userId = response.data.userId
-                arResult.isAdmin = response.data.isAdmin
-            });*/
+                arResult.userId = comment.data.userId
+                arResult.isAdmin = comment.data.isAdmin
+            });
         },
         buttonSendSubComment(data)
         {
@@ -101,8 +98,8 @@ export const CommentItems = {
             }).then(function(comment){
                 $('.fa-close').trigger('click')
                 arResult.arrayComment = comment.data.object;
-                arResult.userId = response.data.userId
-                arResult.isAdmin = response.data.isAdmin
+                arResult.userId = comment.data.userId
+                arResult.isAdmin = comment.data.isAdmin
             });
         },
         ParentCall(fmethod, id)
@@ -137,7 +134,7 @@ export const CommentItems = {
                             <div class="ui-ctl-label-text line-block-form" @click="openCommentAuth" v-if="!showComment" role="button">
                                 <i class="fa fa-comment"></i> <input class="ui-ctl-element" readonly="readonly" type="text" :placeholder="$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')">
                             </div>
-                            <div class="ui-ctl-label-text" @click="closeCommentAuth" v-if="showComment" id="closeComments" role="button"><i class="fa fa-close"></i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}</div>
+                            <div class="ui-ctl-label-text closeComments" @click="closeCommentAuth" v-if="showComment" role="button"><i class="fa fa-close"></i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}</div>
                         </div>
                         <div class="ui-form form-body" v-if="showComment">
                             <form id="addComment" class="ui-ctl-w100" @submit.prevent="buttonSendComment(path,query,arResult.userId)">
@@ -186,8 +183,9 @@ export const CommentItems = {
                             :path="path" 
                             :userid="arResult.userId" 
                             :isuser="isUser" 
+                            :isFullName="isFullName"
                             @message-callback="ParentCall"
-                            @sub-comment="buttonSendSubComment"
+                            @sub-comment="buttonSendComment"
                         />
                         <template v-if="post.sub"  v-for="(spost, sindex) in post.sub" :key="sindex">
                             <Items 
@@ -200,6 +198,7 @@ export const CommentItems = {
                                 :letter="spost.letter"
                                 :id="spost.ID"
                                 :isauthor="spost.author" 
+                                :isfullname="isFullName" 
                                 :show="true" 
                                 :child="true" 
                                 @message-callback="ParentCall"/>
