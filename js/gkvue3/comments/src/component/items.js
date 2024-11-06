@@ -1,11 +1,16 @@
 import {CommentFormNoauth} from "./form/comment-form-noauth";
 import {CommentFormAuth} from "./form/comment-form-auth";
+import {IconClose, IconEdit, IconDelete, IconCommenting} from "./icons/icon-complete";
 
 export const Items = {
     props: ['name', 'letter', 'text', 'icon', 'data', 'timedata', 'elementId', 'id', 'isauthor', 'show', 'child', 'path', 'userid', 'isuser', 'isFullName'],
     components: {
         CommentFormNoauth,
-        CommentFormAuth
+        CommentFormAuth,
+        IconClose: IconClose,
+        IconEdit,
+        IconDelete,
+        IconCommenting
     },
     data() {
         return {
@@ -68,15 +73,24 @@ export const Items = {
                     </template>
                 </div>
                 <div class="socnet-button">
-                    <i class="fa fa-close" v-if="comment" @click="comment = !comment"></i>
-                    <i class="fa fa-commenting" aria-hidden="true" :title="$Bitrix.Loc.getMessage('TITLE_COMMENT')" 
+<!--                    <i class="fa fa-close" v-if="comment" @click="comment = !comment"></i>-->
+                    <i v-if="comment" @click="comment = !comment">
+                      <IconClose/>
+                    </i>
+                    <i :title="$Bitrix.Loc.getMessage('TITLE_COMMENT')" 
                         @click="$emit('messageCallback', 'recomment', id)" 
-                        @click="comment = !comment" v-if="(!comment && !child)"></i>
-                    <i class="fa fa-pencil" aria-hidden="true" :title="$Bitrix.Loc.getMessage('TITLE_EDIT')" 
-                        @click="$emit('messageCallback', 'edit', id)" v-if="(isauthor == true && !child)"></i>
-                    <i class="fa fa-trash" aria-hidden="true" :title="$Bitrix.Loc.getMessage('TITLE_DELETE')" 
+                        @click="comment = !comment" v-if="(!comment && !child)">
+                      <IconCommenting/>
+                    </i>
+                    <i :title="$Bitrix.Loc.getMessage('TITLE_EDIT')" 
+                        @click="$emit('messageCallback', 'edit', id)" v-if="(isauthor == true && !child)">
+                      <IconEdit/>
+                    </i>
+                    <i :title="$Bitrix.Loc.getMessage('TITLE_DELETE')" 
                         @click="$emit('messageCallback', 'delete', id)" 
-                        @click="show = !show" v-if="(isauthor == true)"></i>
+                        @click="show = !show" v-if="(isauthor == true)">
+                      <IconDelete/>
+                    </i>
                 </div>
             </div>
         </transition>

@@ -2,6 +2,7 @@ import {Dom, Loc} from 'main.core';
 import {Items} from './items'
 import {CommentFormNoauth, CommentFormNotauth} from "./form/comment-form-noauth";
 import {CommentFormAuth} from "./form/comment-form-auth";
+import {IconCommenting, IconClose} from "./icons/icon-complete";
 import {reactive} from "ui.vue3";
 const {runAction, prepareForm} = BX.ajax;
 export const CommentItems = {
@@ -9,7 +10,9 @@ export const CommentItems = {
     {
         Items,
         CommentFormNoauth,
-        CommentFormAuth
+        CommentFormAuth,
+        IconCommenting,
+        IconClose
     },
     data()
     {
@@ -134,9 +137,15 @@ export const CommentItems = {
                         <div class="title">{{name}}</div>
                         <div class="blockButton">
                             <div class="ui-ctl-label-text line-block-form" @click="openCommentAuth" v-if="!showComment" role="button">
-                                <i class="fa fa-comment"></i> <input class="ui-ctl-element" readonly="readonly" type="text" :placeholder="$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')">
+                                <i>
+                                    <IconCommenting/>
+                                </i> <input class="ui-ctl-element" readonly="readonly" type="text" :placeholder="$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')">
                             </div>
-                            <div class="ui-ctl-label-text closeComments" @click="closeCommentAuth" v-if="showComment" role="button"><i class="fa fa-close"></i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}</div>
+                            <div class="ui-ctl-label-text closeComments" @click="closeCommentAuth" v-if="showComment" role="button">
+                                <i>
+                                    <IconClose/>
+                                </i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}
+                            </div>
                         </div>
                         <div class="ui-form form-body" v-if="showComment">
                             <CommentFormAuth
