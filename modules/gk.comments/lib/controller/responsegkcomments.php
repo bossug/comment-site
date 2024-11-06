@@ -56,8 +56,8 @@ class ResponseGkComments extends Controller
             'PATH' => $list['path'] ?: '',
             'QUERY' => $list['query'] ?: '',
         ];
-        if ($list['USER_ID']) {
-            $fields['USER_ID'] = $list['USER_ID'];
+        if ($userId > 0) {
+            $fields['USER_ID'] = $userId;
         } else {
             $fields['USER_NAME'] = $list['NAME'];
             $fields['USER_LAST_NAME'] = $list['LAST_NAME'];

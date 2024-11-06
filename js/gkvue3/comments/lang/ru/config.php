@@ -8,3 +8,7 @@ $MESS['SEND_COMMENT'] = 'Отправить';
 $MESS['YOUR_NAME'] = 'Ваше имя';
 $MESS['YOUR_LAST_NAME'] = 'Ваша фамилия';
 $MESS['YOUR_EMAIL'] = 'Ваш E-mail';
+
+$MESS['TITLE_COMMENT'] = 'Комментировать';
+$MESS['TITLE_EDIT'] = 'Редактировать';
+$MESS['TITLE_DELETE'] = 'Удалить';

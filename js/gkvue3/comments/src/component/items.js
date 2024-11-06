@@ -1,9 +1,11 @@
 import {CommentFormNoauth} from "./form/comment-form-noauth";
+import {CommentFormAuth} from "./form/comment-form-auth";
 
 export const Items = {
     props: ['name', 'letter', 'text', 'icon', 'data', 'timedata', 'elementId', 'id', 'isauthor', 'show', 'child', 'path', 'userid', 'isuser', 'isFullName'],
     components: {
-        CommentFormNoauth
+        CommentFormNoauth,
+        CommentFormAuth
     },
     data() {
         return {
@@ -54,29 +56,27 @@ export const Items = {
                         />
                     </template>
                     <template v-else>
-                        <form class="ui-ctl-w100">
-                            <div class="ui-form-row">
-                                <div class="ui-form-label">
-                                    <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_COMMENT')}}</div>
-                                </div>
-                                <div class="ui-form-content">
-                                    <div class="ui-ctl-xs ui-ctl-textarea ui-ctl-w100">
-                                        <textarea v-model="subtext" class="ui-ctl-element require"></textarea>
-                                    </div>
-                                </div>
-                                <div class="ui-form-content mt-3">
-                                    <input class="ui-btn ui-btn-success" type="button" @click="buttonSendSubComment(id, path, userid)" :value="$Bitrix.Loc.getMessage('SEND_COMMENT')" />
-                                </div>
-                            <div>
-                        </form>
+                        <CommentFormAuth
+                            :showComment="comment" 
+                            :path="path" 
+                            :child="true" 
+                            :id="id"
+                            @open-comment-auth="openCommentAuth" 
+                            @close-comment="closeComment" 
+                            @button-send-comment="buttonSendComment"
+                        />
                     </template>
-                    
                 </div>
                 <div class="socnet-button">
                     <i class="fa fa-close" v-if="comment" @click="comment = !comment"></i>
-                    <i class="fa fa-commenting" aria-hidden="true" title="Комментировать" @click="$emit('messageCallback', 'recomment', id)"  @click="comment = !comment" v-if="(!comment && !child)"></i>
-                    <i class="fa fa-pencil" aria-hidden="true" title="Редактировать" @click="$emit('messageCallback', 'edit', id)" v-if="(isauthor == true && !child)"></i>
-                    <i class="fa fa-trash" aria-hidden="true" title="удалить" @click="$emit('messageCallback', 'delete', id)" @click="show = !show" v-if="(isauthor == true)"></i>
+                    <i class="fa fa-commenting" aria-hidden="true" :title="$Bitrix.Loc.getMessage('TITLE_COMMENT')" 
+                        @click="$emit('messageCallback', 'recomment', id)" 
+                        @click="comment = !comment" v-if="(!comment && !child)"></i>
+                    <i class="fa fa-pencil" aria-hidden="true" :title="$Bitrix.Loc.getMessage('TITLE_EDIT')" 
+                        @click="$emit('messageCallback', 'edit', id)" v-if="(isauthor == true && !child)"></i>
+                    <i class="fa fa-trash" aria-hidden="true" :title="$Bitrix.Loc.getMessage('TITLE_DELETE')" 
+                        @click="$emit('messageCallback', 'delete', id)" 
+                        @click="show = !show" v-if="(isauthor == true)"></i>
                 </div>
             </div>
         </transition>

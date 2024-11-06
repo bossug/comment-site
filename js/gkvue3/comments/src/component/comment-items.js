@@ -1,13 +1,15 @@
 import {Dom, Loc} from 'main.core';
 import {Items} from './items'
-import {CommentFormNoauth} from "./form/comment-form-noauth";
+import {CommentFormNoauth, CommentFormNotauth} from "./form/comment-form-noauth";
+import {CommentFormAuth} from "./form/comment-form-auth";
 import {reactive} from "ui.vue3";
 const {runAction, prepareForm} = BX.ajax;
 export const CommentItems = {
     components:
     {
         Items,
-        CommentFormNoauth
+        CommentFormNoauth,
+        CommentFormAuth
     },
     data()
     {
@@ -137,21 +139,13 @@ export const CommentItems = {
                             <div class="ui-ctl-label-text closeComments" @click="closeCommentAuth" v-if="showComment" role="button"><i class="fa fa-close"></i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}</div>
                         </div>
                         <div class="ui-form form-body" v-if="showComment">
-                            <form id="addComment" class="ui-ctl-w100" @submit.prevent="buttonSendComment(path,query,arResult.userId)">
-                                <div class="ui-form-row">
-                                    <div class="ui-form-label">
-                                        <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_COMMENT')}}</div>
-                                    </div>
-                                    <div class="ui-form-content">
-                                        <div class="ui-ctl-xs ui-ctl-textarea ui-ctl-w100">
-                                            <textarea v-model="text" name="text" class="ui-ctl-element require"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="ui-form-content mt-3">
-                                        <input class="ui-btn ui-btn-success" type="submit" :value="$Bitrix.Loc.getMessage('SEND_COMMENT')" />
-                                    </div>
-                                <div>
-                            </form>
+                            <CommentFormAuth
+                                :showComment="showComment" 
+                                :path="path" 
+                                @open-comment-auth="openCommentAuth" 
+                                @close-comment="closeComment" 
+                                @button-send-comment="buttonSendComment"
+                            />
                         </div>
                     </div>
                     <div class="comment-button-body mb-3" v-else>
