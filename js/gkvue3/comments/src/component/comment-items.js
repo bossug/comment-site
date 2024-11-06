@@ -1,16 +1,22 @@
 import {Dom, Loc} from 'main.core';
 import {Items} from './items'
 import {CommentFormNoauth} from "./form/comment-form-noauth";
+import {CommentFormAuth} from "./form/comment-form-auth";
+import {IconCommenting, IconClose} from "./icons/icon-complete";
 import {reactive} from "ui.vue3";
-const {runAction, prepareForm} = BX.ajax;
+const {runAction} = BX.ajax;
 export const CommentItems = {
     components:
     {
         Items,
-        CommentFormNoauth
+        CommentFormNoauth,
+        CommentFormAuth,
+        IconCommenting,
+        IconClose
     },
     data()
     {
+        let userData = BX.localStorage.get('userData');
         let url = new URL(location);
         const arResult = reactive({});
         arResult.path = url.pathname;
@@ -37,6 +43,7 @@ export const CommentItems = {
             text: null,
             isFullName: false,
             fullName: '',
+            userData: userData,
         }
     },
     computed: {
@@ -102,6 +109,18 @@ export const CommentItems = {
                 arResult.isAdmin = comment.data.isAdmin
             });
         },
+        buttonEditComment(data)
+        {
+            const {arResult} = this;
+            runAction('gk:comments.CC.ResponseGkComments.editComment',{
+                data: data
+            }).then(function(comment){
+                $('.fa-close').trigger('click')
+                arResult.arrayComment = comment.data.object;
+                arResult.userId = comment.data.userId
+                arResult.isAdmin = comment.data.isAdmin
+            });
+        },
         ParentCall(fmethod, id)
         {
             if (fmethod === 'delete') {
@@ -132,26 +151,24 @@ export const CommentItems = {
                         <div class="title">{{name}}</div>
                         <div class="blockButton">
                             <div class="ui-ctl-label-text line-block-form" @click="openCommentAuth" v-if="!showComment" role="button">
-                                <i class="fa fa-comment"></i> <input class="ui-ctl-element" readonly="readonly" type="text" :placeholder="$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')">
+                                <i>
+                                    <IconCommenting/>
+                                </i> <input class="ui-ctl-element" readonly="readonly" type="text" :placeholder="$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')">
                             </div>
-                            <div class="ui-ctl-label-text closeComments" @click="closeCommentAuth" v-if="showComment" role="button"><i class="fa fa-close"></i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}</div>
+                            <div class="ui-ctl-label-text closeComments" @click="closeCommentAuth" v-if="showComment" role="button">
+                                <i>
+                                    <IconClose/>
+                                </i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}
+                            </div>
                         </div>
                         <div class="ui-form form-body" v-if="showComment">
-                            <form id="addComment" class="ui-ctl-w100" @submit.prevent="buttonSendComment(path,query,arResult.userId)">
-                                <div class="ui-form-row">
-                                    <div class="ui-form-label">
-                                        <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_COMMENT')}}</div>
-                                    </div>
-                                    <div class="ui-form-content">
-                                        <div class="ui-ctl-xs ui-ctl-textarea ui-ctl-w100">
-                                            <textarea v-model="text" name="text" class="ui-ctl-element require"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="ui-form-content mt-3">
-                                        <input class="ui-btn ui-btn-success" type="submit" :value="$Bitrix.Loc.getMessage('SEND_COMMENT')" />
-                                    </div>
-                                <div>
-                            </form>
+                            <CommentFormAuth
+                                :showComment="showComment" 
+                                :path="path" 
+                                @open-comment-auth="openCommentAuth" 
+                                @close-comment="closeComment" 
+                                @button-send-comment="buttonSendComment"
+                            />
                         </div>
                     </div>
                     <div class="comment-button-body mb-3" v-else>
@@ -160,6 +177,7 @@ export const CommentItems = {
                             :path="path" 
                             :isFullName="isFullName" 
                             :fullName="fullName" 
+                            :userData="userData" 
                             @open-comment-not-auth="openCommentNotAuth" 
                             @close-comment-auth="closeCommentAuth" 
                             @button-send-comment="buttonSendComment"
@@ -183,9 +201,11 @@ export const CommentItems = {
                             :path="path" 
                             :userid="arResult.userId" 
                             :isuser="isUser" 
-                            :isFullName="isFullName"
+                            :isFullName="isFullName" 
+                            :userData="userData" 
                             @message-callback="ParentCall"
-                            @sub-comment="buttonSendComment"
+                            @sub-comment="buttonSendComment" 
+                            @edit-comment="buttonEditComment"
                         />
                         <template v-if="post.sub"  v-for="(spost, sindex) in post.sub" :key="sindex">
                             <Items 
@@ -201,6 +221,9 @@ export const CommentItems = {
                                 :isfullname="isFullName" 
                                 :show="true" 
                                 :child="true" 
+                                :path="path" 
+                                :userData="userData" 
+                                @edit-comment="buttonEditComment" 
                                 @message-callback="ParentCall"/>
                         </template>
                     </template>
