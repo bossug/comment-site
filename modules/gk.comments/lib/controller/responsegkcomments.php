@@ -29,7 +29,8 @@ class ResponseGkComments extends Controller
             'setComment' => [
                 'prefilters' => []
             ],
-            'delComment' => ['prefilters' => []]
+            'delComment' => ['prefilters' => []],
+            'editComment' => ['prefilters' => []],
 		];
 	}
 
@@ -90,6 +91,64 @@ class ResponseGkComments extends Controller
                 //$params['filter']['=PATH'] = $path;
             }
             $params['filter']['=PATH'] = $path;
+            $objs = GkCommentsTable::getList($params);
+            $result = [];
+            $objTime = $objTimeLast = new DateTime();
+            $objTime->add('-1 days');
+            $objTimeLast->add('-2 days');
+            if ($objs->getCount() > 0) {
+                foreach ($objs->fetchAll() as &$obj) {
+                    $obj['data'] = $obj['DATE_CREATE']->format('d.m.Y');
+                    $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp()
+                        ? ($obj['DATE_CREATE']->getTimestamp() < $objTimeLast->getTimestamp() ? $obj['DATE_CREATE']->format('d.m.Y') : 'вчера')
+                        : 'сегодня';
+                    $obj['letter'] = $obj['USER_ID'] > 0
+                        ? mb_substr($obj['USERS_LAST_NAME'], 0, 1).mb_substr($obj['USERS_NAME'], 0, 1)
+                        : mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
+                    $obj['NAME'] = $obj['USER_ID'] > 0 ? $obj['USERS_LAST_NAME'] . ' ' . $obj['USERS_NAME'] : $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
+                    $obj['icon'] = $obj['USERS_AVATAR'];
+                    $obj['author'] = ($userId > 0 && $userId == $obj['USER_ID']) || $isAdmin;
+                    if ($obj['COMMENT_ID'] > 0) {
+                        $result[$obj['COMMENT_ID']]['sub'][] = $obj;
+                    } else {
+                        $result[$obj['ID']] = $obj;
+                    }
+                }
+            }
+        }
+        return [
+            'object' => $result,
+            'userId' => $userId,
+            'isAdmin' => $isAdmin
+        ];
+    }
+
+    public function editCommentAction()
+    {
+        $userId = \Bitrix\Main\Engine\CurrentUser::get()->getId();
+        $isAdmin = \Bitrix\Main\Engine\CurrentUser::get()->isAdmin();
+        $request = Application::getInstance()->getContext()->getRequest();
+        $list = $request->getPostList()->toArray();
+        $response = GkCommentsTable::update($list['id'], ['COMMENT' => $list['text']]);
+        if ($response->isSuccess()) {
+            $params = [
+                'count_total' => 1,
+                'order' => ['DATE_CREATE' => 'ASC'],
+                'select' => ['*',
+                    'USERS_AVATAR' => 'USERS.PERSONAL_PHOTO',
+                    'USERS_NAME' => 'USERS.NAME',
+                    'USERS_LAST_NAME' => 'USERS.LAST_NAME',
+                    'USERS_EMAIL' => 'USERS.EMAIL'
+                ],
+                'runtime' => [
+                    (new \Bitrix\Main\ORM\Fields\Relations\Reference(
+                        'USERS',
+                        \Bitrix\Main\UserTable::class,
+                        \Bitrix\Main\ORM\Query\Join::on('this.USER_ID', 'ref.ID')
+                    ))
+                ]
+            ];
+            $params['filter']['=PATH'] = $list['path'];
             $objs = GkCommentsTable::getList($params);
             $result = [];
             $objTime = $objTimeLast = new DateTime();

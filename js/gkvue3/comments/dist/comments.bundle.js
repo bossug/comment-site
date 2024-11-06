@@ -3,21 +3,22 @@
     'use strict';
 
     var CommentFormNoauth = {
-      props: ['showComment', 'path', 'query', 'child', 'id'],
+      props: ['showComment', 'path', 'query', 'child', 'id', 'userData'],
       data: function data() {
         //BX.localStorage.remove('userData')
-        var userData = BX.localStorage.get('userData');
+        //let userData = BX.localStorage.get('userData');
         return {
           showComment: this.showComment,
           child: this.child,
           path: this.path,
           text: null,
-          userData: userData,
+          userData: this.userData,
           fullName: null
         };
       },
       computed: {
         isFullName: function isFullName() {
+          console.log(this.userData);
           if (this.userData !== null) {
             this.fullName = this.userData.LAST_NAME + ' ' + this.userData.NAME;
           }
@@ -104,6 +105,25 @@
       template: "\n        <template v-if=\"child\">\n            <form class=\"ui-ctl-w100\">\n                <div class=\"ui-form-row\">\n                    <div class=\"ui-form-label\">\n                        <div class=\"ui-ctl-label-text\">{{$Bitrix.Loc.getMessage('YOUR_COMMENT')}}</div>\n                    </div>\n                    <div class=\"ui-form-content\">\n                        <div class=\"ui-ctl-xs ui-ctl-textarea ui-ctl-w100\">\n                            <textarea v-model=\"subtext\" name=\"text\" class=\"ui-ctl-element require\"></textarea>\n                        </div>\n                    </div>\n                    <div class=\"ui-form-content mt-3\">\n                        <input class=\"ui-btn ui-btn-success\" type=\"button\" @click=\"buttonSendSubComment(id)\" :value=\"$Bitrix.Loc.getMessage('SEND_COMMENT')\" />\n                    </div>\n                <div>\n            </form>\n        </template>\n        <template v-if=\"!child\">\n            <div class=\"button-body\">\n                <div class=\"blockButton\">\n                    <div class=\"ui-ctl-label-text\" @click=\"openCommentAuth\" v-if=\"!showComment\" role=\"button\"><i class=\"fa fa-comment\"></i> {{$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')}}</div>\n                </div>\n            </div>\n            <div class=\"ui-form form-body\" v-if=\"showComment\">\n                <form class=\"ui-ctl-w100\" @submit.prevent=\"buttonSendComment\">\n                    <div class=\"ui-form-row\">\n                        <div class=\"ui-form-label\">\n                            <div class=\"ui-ctl-label-text\">{{$Bitrix.Loc.getMessage('YOUR_COMMENT')}}</div>\n                        </div>\n                        <div class=\"ui-form-content\">\n                            <div class=\"ui-ctl-xs ui-ctl-textarea ui-ctl-w100\">\n                                <textarea v-model=\"text\" name=\"text\" class=\"ui-ctl-element require\"></textarea>\n                            </div>\n                        </div>\n                        <div class=\"ui-form-content mt-3\">\n                            <input class=\"ui-btn ui-btn-success\" type=\"submit\" :value=\"$Bitrix.Loc.getMessage('SEND_COMMENT')\" />\n                        </div>\n                    <div>\n                </form>\n            </div>\n        </template>\n    "
     };
 
+    var CommentFormEdit = {
+      props: ['subtext', 'id', 'path'],
+      data: function data() {
+        return {
+          edittext: this.subtext
+        };
+      },
+      methods: {
+        buttonEditSubComment: function buttonEditSubComment(id) {
+          this.$emit('buttonEditComment', {
+            text: this.edittext,
+            id: id,
+            path: this.path
+          });
+        }
+      },
+      template: "\n        <div class=\"ui-form-row\">\n            <div class=\"ui-form-label\">\n                <div class=\"ui-ctl-label-text\">{{$Bitrix.Loc.getMessage('YOUR_EDIT_COMMENT')}}</div>\n            </div>\n            <div class=\"ui-form-content\">\n                <div class=\"ui-ctl-xs ui-ctl-textarea ui-ctl-w100\">\n                    <textarea v-model=\"edittext\" class=\"ui-ctl-element require\"></textarea>\n                </div>\n            </div>\n            <div class=\"ui-form-content mt-3\">\n                <input class=\"ui-btn ui-btn-success\" type=\"button\" @click=\"buttonEditSubComment(id)\" :value=\"$Bitrix.Loc.getMessage('EDIT_COMMENT')\" />\n            </div>\n        <div>\n    "
+    };
+
     var IconClose = {
       template: "\n        <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-x\" viewBox=\"0 0 16 16\">\n          <path d=\"M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708\"/>\n        </svg>\n    "
     };
@@ -118,38 +138,47 @@
     };
 
     var Items = {
-      props: ['name', 'letter', 'text', 'icon', 'data', 'timedata', 'elementId', 'id', 'isauthor', 'show', 'child', 'path', 'userid', 'isuser', 'isFullName'],
+      props: ['name', 'letter', 'text', 'icon', 'data', 'timedata', 'elementId', 'id', 'isauthor', 'show', 'child', 'path', 'userid', 'isuser', 'isFullName', 'userData'],
       components: {
         CommentFormNoauth: CommentFormNoauth,
         CommentFormAuth: CommentFormAuth,
+        CommentFormEdit: CommentFormEdit,
         IconClose: IconClose,
         IconEdit: IconEdit,
         IconDelete: IconDelete,
         IconCommenting: IconCommenting
       },
       data: function data() {
+        if (this.userData !== null) {
+          this.fullName = this.userData.LAST_NAME + ' ' + this.userData.NAME;
+        }
         return {
           show: true,
           comment: false,
+          commentEdit: false,
           NAME: '',
           LAST_NAME: '',
           EMAIL: '',
           subtext: '',
-          comment_id: 0
+          comment_id: 0,
+          fullName: this.fullName,
+          userData: this.userData
         };
       },
       methods: {
         buttonSendComment: function buttonSendComment(data) {
           this.$emit('subComment', data);
           this.comment = false;
+        },
+        buttonEditComment: function buttonEditComment(data) {
+          this.$emit('editComment', data);
+          this.commentEdit = false;
         }
       },
-      template: "\n        <transition :duration=\"500\">\n            <div :class=\"{'child-item': child}\" class=\"comment-item\" :data-id=\"id\" v-if=\"show\">\n                <div class=\"header-top\">\n                    <div class=\"f-left\">\n                        <div class=\"f-circle\">\n                            <div class=\"letter\">{{letter}}</div>\n                        </div>\n                        <div class=\"f-content\">\n                            <div>{{name}}</div>\n                            <div v-if=\"(timedata=='')\">{{data}}</div>\n                            <div v-else>{{timedata}}</div>\n                        </div>\n                    </div>\n                </div>\n                <div class=\"text\">{{text}}</div>\n                <div v-if=\"comment\" class=\"subBlock\">\n                    <template v-if=\"!isuser\">\n                        <CommentFormNoauth \n                            :showComment=\"comment\" \n                            :path=\"path\" \n                            :isFullName=\"isFullName\" \n                            :fullName=\"fullname\" \n                            :child=\"true\" \n                            :id=\"id\"\n                            @open-comment-not-auth=\"openCommentNotAuth\" \n                            @close-comment-auth=\"closeCommentAuth\" \n                            @button-send-comment=\"buttonSendComment\"\n                        />\n                    </template>\n                    <template v-else>\n                        <CommentFormAuth\n                            :showComment=\"comment\" \n                            :path=\"path\" \n                            :child=\"true\" \n                            :id=\"id\"\n                            @open-comment-auth=\"openCommentAuth\" \n                            @close-comment=\"closeComment\" \n                            @button-send-comment=\"buttonSendComment\"\n                        />\n                    </template>\n                </div>\n                <div class=\"socnet-button\">\n<!--                    <i class=\"fa fa-close\" v-if=\"comment\" @click=\"comment = !comment\"></i>-->\n                    <i v-if=\"comment\" @click=\"comment = !comment\">\n                      <IconClose/>\n                    </i>\n                    <i :title=\"$Bitrix.Loc.getMessage('TITLE_COMMENT')\" \n                        @click=\"$emit('messageCallback', 'recomment', id)\" \n                        @click=\"comment = !comment\" v-if=\"(!comment && !child)\">\n                      <IconCommenting/>\n                    </i>\n                    <i :title=\"$Bitrix.Loc.getMessage('TITLE_EDIT')\" \n                        @click=\"$emit('messageCallback', 'edit', id)\" v-if=\"(isauthor == true && !child)\">\n                      <IconEdit/>\n                    </i>\n                    <i :title=\"$Bitrix.Loc.getMessage('TITLE_DELETE')\" \n                        @click=\"$emit('messageCallback', 'delete', id)\" \n                        @click=\"show = !show\" v-if=\"(isauthor == true)\">\n                      <IconDelete/>\n                    </i>\n                </div>\n            </div>\n        </transition>\n    "
+      template: "\n        <transition :duration=\"500\">\n            <div :class=\"{'child-item': child}\" class=\"comment-item\" :data-id=\"id\" v-if=\"show\">\n                <div class=\"header-top\">\n                    <div class=\"f-left\">\n                        <div class=\"f-circle\">\n                            <div class=\"letter\">{{letter}}</div>\n                        </div>\n                        <div class=\"f-content\">\n                            <div>{{name}}</div>\n                            <div v-if=\"(timedata=='')\">{{data}}</div>\n                            <div v-else>{{timedata}}</div>\n                        </div>\n                    </div>\n                </div>\n                <div class=\"text\">{{text}}</div>\n                <div v-if=\"comment\" class=\"subBlock\">\n                    <template v-if=\"!isuser\">\n                        <CommentFormNoauth \n                            :showComment=\"comment\" \n                            :path=\"path\" \n                            :isFullName=\"isFullName\" \n                            :child=\"true\" \n                            :id=\"id\"\n                            :userData=\"userData\"\n                            @open-comment-not-auth=\"openCommentNotAuth\" \n                            @close-comment-auth=\"closeCommentAuth\" \n                            @button-send-comment=\"buttonSendComment\"\n                            @full-name=\"fullName\"\n                        />\n                    </template>\n                    <template v-else>\n                        <CommentFormAuth\n                            :showComment=\"comment\" \n                            :path=\"path\" \n                            :child=\"true\" \n                            :id=\"id\"\n                            @open-comment-auth=\"openCommentAuth\" \n                            @close-comment=\"closeComment\" \n                            @button-send-comment=\"buttonSendComment\"\n                        />\n                    </template>\n                </div>\n                <div v-if=\"commentEdit\" class=\"subBlock\">\n                    <CommentFormEdit :subtext=\"text\" :id=\"id\" :path=\"path\" @button-edit-comment=\"buttonEditComment\"/>\n                </div>\n                <div class=\"socnet-button\">\n                    <i v-if=\"comment\" @click=\"comment = !comment\">\n                      <IconClose/>\n                    </i>\n                    <i :title=\"$Bitrix.Loc.getMessage('TITLE_COMMENT')\" \n                        @click=\"$emit('messageCallback', 'recomment', id)\" \n                        @click=\"comment = !comment\" v-if=\"(!comment && !child && fullName != name)\">\n                      <IconCommenting/>\n                    </i>\n                    <i :title=\"$Bitrix.Loc.getMessage('TITLE_EDIT')\" \n                        @click=\"commentEdit = !commentEdit\" \n                        @click=\"$emit('messageCallback', 'edit', id)\" v-if=\"(isauthor == true && !child || fullName == name)\">\n                      <IconEdit/>\n                    </i>\n                    <i :title=\"$Bitrix.Loc.getMessage('TITLE_DELETE')\" \n                        @click=\"$emit('messageCallback', 'delete', id)\" \n                        @click=\"show = !show\" v-if=\"(isauthor == true || fullName == name)\">\n                      <IconDelete/>\n                    </i>\n                </div>\n            </div>\n        </transition>\n    "
     };
 
-    var _BX$ajax = BX.ajax,
-      runAction = _BX$ajax.runAction,
-      prepareForm = _BX$ajax.prepareForm;
+    var runAction = BX.ajax.runAction;
     var CommentItems = {
       components: {
         Items: Items,
@@ -159,6 +188,7 @@
         IconClose: IconClose
       },
       data: function data() {
+        var userData = BX.localStorage.get('userData');
         var url = new URL(location);
         var arResult = ui_vue3.reactive({});
         arResult.path = url.pathname;
@@ -184,7 +214,8 @@
           EMAIL: null,
           text: null,
           isFullName: false,
-          fullName: ''
+          fullName: '',
+          userData: userData
         };
       },
       computed: {
@@ -242,6 +273,17 @@
             arResult.isAdmin = comment.data.isAdmin;
           });
         },
+        buttonEditComment: function buttonEditComment(data) {
+          var arResult = this.arResult;
+          runAction('gk:comments.CC.ResponseGkComments.editComment', {
+            data: data
+          }).then(function (comment) {
+            $('.fa-close').trigger('click');
+            arResult.arrayComment = comment.data.object;
+            arResult.userId = comment.data.userId;
+            arResult.isAdmin = comment.data.isAdmin;
+          });
+        },
         ParentCall: function ParentCall(fmethod, id) {
           if (fmethod === 'delete') {
             var arResult = this.arResult;
@@ -263,7 +305,7 @@
           }
         }
       },
-      template: "\n            <div>\n                <div class=\"comment-header\">\n                    <div class=\"comment-button-body mb-3\" v-if=\"isUser\">\n                        <div class=\"title\">{{name}}</div>\n                        <div class=\"blockButton\">\n                            <div class=\"ui-ctl-label-text line-block-form\" @click=\"openCommentAuth\" v-if=\"!showComment\" role=\"button\">\n                                <i>\n                                    <IconCommenting/>\n                                </i> <input class=\"ui-ctl-element\" readonly=\"readonly\" type=\"text\" :placeholder=\"$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')\">\n                            </div>\n                            <div class=\"ui-ctl-label-text closeComments\" @click=\"closeCommentAuth\" v-if=\"showComment\" role=\"button\">\n                                <i>\n                                    <IconClose/>\n                                </i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}\n                            </div>\n                        </div>\n                        <div class=\"ui-form form-body\" v-if=\"showComment\">\n                            <CommentFormAuth\n                                :showComment=\"showComment\" \n                                :path=\"path\" \n                                @open-comment-auth=\"openCommentAuth\" \n                                @close-comment=\"closeComment\" \n                                @button-send-comment=\"buttonSendComment\"\n                            />\n                        </div>\n                    </div>\n                    <div class=\"comment-button-body mb-3\" v-else>\n                        <CommentFormNoauth \n                            :showComment=\"showComment\" \n                            :path=\"path\" \n                            :isFullName=\"isFullName\" \n                            :fullName=\"fullName\" \n                            @open-comment-not-auth=\"openCommentNotAuth\" \n                            @close-comment-auth=\"closeCommentAuth\" \n                            @button-send-comment=\"buttonSendComment\"\n                        />\n                    </div>\n                </div>\n                <div class=\"comment-body\" id=\"comment-body\">\n                    <template v-for=\"(post, index) in arResult.arrayComment\" :key=\"index\">\n                        <Items  v-if=\"(post.COMMENT_ID == 0)\" \n                            :name=\"post.NAME\"\n                            :text=\"post.COMMENT\"\n                            :icon=\"post.icon\"\n                            :elementid=\"post.COMMENT_ID\"\n                            :data=\"post.data\"\n                            :timedata=\"post.timeData\"\n                            :letter=\"post.letter\"\n                            :id=\"post.ID\"\n                            :isauthor=\"post.author\" \n                            :show=\"true\"\n                            :child=\"false\" \n                            :path=\"path\" \n                            :userid=\"arResult.userId\" \n                            :isuser=\"isUser\" \n                            :isFullName=\"isFullName\"\n                            @message-callback=\"ParentCall\"\n                            @sub-comment=\"buttonSendComment\"\n                        />\n                        <template v-if=\"post.sub\"  v-for=\"(spost, sindex) in post.sub\" :key=\"sindex\">\n                            <Items \n                                :name=\"spost.NAME\"\n                                :text=\"spost.COMMENT\"\n                                :icon=\"spost.icon\"\n                                :elementid=\"spost.COMMENT_ID\"\n                                :data=\"spost.data\"\n                                :timedata=\"spost.timeData\"\n                                :letter=\"spost.letter\"\n                                :id=\"spost.ID\"\n                                :isauthor=\"spost.author\" \n                                :isfullname=\"isFullName\" \n                                :show=\"true\" \n                                :child=\"true\" \n                                @message-callback=\"ParentCall\"/>\n                        </template>\n                    </template>\n                </div>\n            </div>\n    "
+      template: "\n            <div>\n                <div class=\"comment-header\">\n                    <div class=\"comment-button-body mb-3\" v-if=\"isUser\">\n                        <div class=\"title\">{{name}}</div>\n                        <div class=\"blockButton\">\n                            <div class=\"ui-ctl-label-text line-block-form\" @click=\"openCommentAuth\" v-if=\"!showComment\" role=\"button\">\n                                <i>\n                                    <IconCommenting/>\n                                </i> <input class=\"ui-ctl-element\" readonly=\"readonly\" type=\"text\" :placeholder=\"$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')\">\n                            </div>\n                            <div class=\"ui-ctl-label-text closeComments\" @click=\"closeCommentAuth\" v-if=\"showComment\" role=\"button\">\n                                <i>\n                                    <IconClose/>\n                                </i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}\n                            </div>\n                        </div>\n                        <div class=\"ui-form form-body\" v-if=\"showComment\">\n                            <CommentFormAuth\n                                :showComment=\"showComment\" \n                                :path=\"path\" \n                                @open-comment-auth=\"openCommentAuth\" \n                                @close-comment=\"closeComment\" \n                                @button-send-comment=\"buttonSendComment\"\n                            />\n                        </div>\n                    </div>\n                    <div class=\"comment-button-body mb-3\" v-else>\n                        <CommentFormNoauth \n                            :showComment=\"showComment\" \n                            :path=\"path\" \n                            :isFullName=\"isFullName\" \n                            :fullName=\"fullName\" \n                            :userData=\"userData\" \n                            @open-comment-not-auth=\"openCommentNotAuth\" \n                            @close-comment-auth=\"closeCommentAuth\" \n                            @button-send-comment=\"buttonSendComment\"\n                        />\n                    </div>\n                </div>\n                <div class=\"comment-body\" id=\"comment-body\">\n                    <template v-for=\"(post, index) in arResult.arrayComment\" :key=\"index\">\n                        <Items  v-if=\"(post.COMMENT_ID == 0)\" \n                            :name=\"post.NAME\"\n                            :text=\"post.COMMENT\"\n                            :icon=\"post.icon\"\n                            :elementid=\"post.COMMENT_ID\"\n                            :data=\"post.data\"\n                            :timedata=\"post.timeData\"\n                            :letter=\"post.letter\"\n                            :id=\"post.ID\"\n                            :isauthor=\"post.author\" \n                            :show=\"true\"\n                            :child=\"false\" \n                            :path=\"path\" \n                            :userid=\"arResult.userId\" \n                            :isuser=\"isUser\" \n                            :isFullName=\"isFullName\" \n                            :userData=\"userData\" \n                            @message-callback=\"ParentCall\"\n                            @sub-comment=\"buttonSendComment\" \n                            @edit-comment=\"buttonEditComment\"\n                        />\n                        <template v-if=\"post.sub\"  v-for=\"(spost, sindex) in post.sub\" :key=\"sindex\">\n                            <Items \n                                :name=\"spost.NAME\"\n                                :text=\"spost.COMMENT\"\n                                :icon=\"spost.icon\"\n                                :elementid=\"spost.COMMENT_ID\"\n                                :data=\"spost.data\"\n                                :timedata=\"spost.timeData\"\n                                :letter=\"spost.letter\"\n                                :id=\"spost.ID\"\n                                :isauthor=\"spost.author\" \n                                :isfullname=\"isFullName\" \n                                :show=\"true\" \n                                :child=\"true\" \n                                :path=\"path\" \n                                :userData=\"userData\" \n                                @edit-comment=\"buttonEditComment\" \n                                @message-callback=\"ParentCall\"/>\n                        </template>\n                    </template>\n                </div>\n            </div>\n    "
     };
 
     function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }

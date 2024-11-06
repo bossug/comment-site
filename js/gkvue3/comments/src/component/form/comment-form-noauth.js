@@ -1,23 +1,23 @@
 
 export const CommentFormNoauth = {
-    props: ['showComment', 'path', 'query', 'child', 'id'],
+    props: ['showComment', 'path', 'query', 'child', 'id', 'userData'],
     data()
     {
         //BX.localStorage.remove('userData')
-        let userData = BX.localStorage.get('userData');
-
+        //let userData = BX.localStorage.get('userData');
         return {
             showComment: this.showComment,
             child: this.child,
             path: this.path,
             text: null,
-            userData: userData,
+            userData: this.userData,
             fullName: null
         }
     },
     computed: {
         isFullName()
         {
+            console.log(this.userData)
             if (this.userData !== null) {
                 this.fullName = this.userData.LAST_NAME + ' ' + this.userData.NAME;
             }

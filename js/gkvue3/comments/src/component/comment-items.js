@@ -1,10 +1,10 @@
 import {Dom, Loc} from 'main.core';
 import {Items} from './items'
-import {CommentFormNoauth, CommentFormNotauth} from "./form/comment-form-noauth";
+import {CommentFormNoauth} from "./form/comment-form-noauth";
 import {CommentFormAuth} from "./form/comment-form-auth";
 import {IconCommenting, IconClose} from "./icons/icon-complete";
 import {reactive} from "ui.vue3";
-const {runAction, prepareForm} = BX.ajax;
+const {runAction} = BX.ajax;
 export const CommentItems = {
     components:
     {
@@ -16,6 +16,7 @@ export const CommentItems = {
     },
     data()
     {
+        let userData = BX.localStorage.get('userData');
         let url = new URL(location);
         const arResult = reactive({});
         arResult.path = url.pathname;
@@ -42,6 +43,7 @@ export const CommentItems = {
             text: null,
             isFullName: false,
             fullName: '',
+            userData: userData,
         }
     },
     computed: {
@@ -107,6 +109,18 @@ export const CommentItems = {
                 arResult.isAdmin = comment.data.isAdmin
             });
         },
+        buttonEditComment(data)
+        {
+            const {arResult} = this;
+            runAction('gk:comments.CC.ResponseGkComments.editComment',{
+                data: data
+            }).then(function(comment){
+                $('.fa-close').trigger('click')
+                arResult.arrayComment = comment.data.object;
+                arResult.userId = comment.data.userId
+                arResult.isAdmin = comment.data.isAdmin
+            });
+        },
         ParentCall(fmethod, id)
         {
             if (fmethod === 'delete') {
@@ -163,6 +177,7 @@ export const CommentItems = {
                             :path="path" 
                             :isFullName="isFullName" 
                             :fullName="fullName" 
+                            :userData="userData" 
                             @open-comment-not-auth="openCommentNotAuth" 
                             @close-comment-auth="closeCommentAuth" 
                             @button-send-comment="buttonSendComment"
@@ -186,9 +201,11 @@ export const CommentItems = {
                             :path="path" 
                             :userid="arResult.userId" 
                             :isuser="isUser" 
-                            :isFullName="isFullName"
+                            :isFullName="isFullName" 
+                            :userData="userData" 
                             @message-callback="ParentCall"
-                            @sub-comment="buttonSendComment"
+                            @sub-comment="buttonSendComment" 
+                            @edit-comment="buttonEditComment"
                         />
                         <template v-if="post.sub"  v-for="(spost, sindex) in post.sub" :key="sindex">
                             <Items 
@@ -204,6 +221,9 @@ export const CommentItems = {
                                 :isfullname="isFullName" 
                                 :show="true" 
                                 :child="true" 
+                                :path="path" 
+                                :userData="userData" 
+                                @edit-comment="buttonEditComment" 
                                 @message-callback="ParentCall"/>
                         </template>
                     </template>
