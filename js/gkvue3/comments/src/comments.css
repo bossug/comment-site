@@ -68,3 +68,16 @@
     align-items: baseline;
     gap: 10px;
 }
+
+.comments-wrapper {
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+
+.comments-wrapper[v-cloak] {
+    display: none;
+}
+
+.comments-wrapper.is-visible {
+    opacity: 1;
+}
