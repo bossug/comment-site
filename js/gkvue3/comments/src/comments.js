@@ -20,7 +20,7 @@ export class Comments {
 	async showComponentAfterDelay() {
 		setTimeout(() => {
 			this.state.isVisible = true;
-		}, 750);
+		}, 150);
 	}
 
 	getTemplate() {
@@ -38,9 +38,7 @@ export class Comments {
 				this.$bitrix.Application.set(context);
 			},
 			template: `
-				<div class="comments-wrapper" :class="{ 'is-visible': state.isVisible }">
-					<CommentItems/>
-				</div>
+				<CommentItems class="comments-wrapper" :class="{ 'is-visible': state.isVisible }"/>
 			`,
 		});
 

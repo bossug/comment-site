@@ -44,7 +44,7 @@ export const Items = {
         },
     },
     template: `
-        <transition :duration="500">
+        <transition :duration="{ enter: 500, leave: 500 }" name="slide-fade">
             <div :class="{'child-item': child}" class="comment-item" :data-id="id" v-if="show">
                 <div class="header-top">
                     <div class="f-left">
