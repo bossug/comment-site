@@ -186,7 +186,7 @@ export const CommentItems = {
                 </div>
                 <div class="comment-body" id="comment-body">
                     <template v-for="(post, index) in arResult.arrayComment" :key="index">
-                        <Items  v-if="(post.COMMENT_ID == 0)" 
+                        <Items  v-if="(post.COMMENT_ID == 0)" appear :duration="{ enter: 500, leave: 500 }" 
                             :name="post.NAME"
                             :text="post.COMMENT"
                             :icon="post.icon"
