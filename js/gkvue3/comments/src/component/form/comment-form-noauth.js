@@ -46,10 +46,11 @@ export const CommentFormNoauth = {
                 NAME: this.userData ? this.userData.NAME : this.NAME,
                 LAST_NAME: this.userData ? this.userData.LAST_NAME : this.LAST_NAME,
                 EMAIL: this.userData ? this.userData.EMAIL : this.EMAIL,
-                text: this.text,
+                text: this.toptext,
                 userId: 0,
                 path: this.path
             })
+            this.toptext = null
         },
         buttonSendSubComment(id)
         {
@@ -69,6 +70,7 @@ export const CommentFormNoauth = {
                 path: this.path,
                 comment_id: id,
             })
+            this.subtext = null
         }
     },
     template: `
@@ -112,7 +114,7 @@ export const CommentFormNoauth = {
                     </div>
                     <div class="ui-form-content">
                         <div class="ui-ctl-xs ui-ctl-textarea ui-ctl-w100">
-                            <textarea v-model="subtext" name="text" class="ui-ctl-element require"></textarea>
+                            <textarea v-model="subtext" class="ui-ctl-element require"></textarea>
                         </div>
                     </div>
                     <div class="ui-form-content mt-3">
@@ -170,7 +172,7 @@ export const CommentFormNoauth = {
                         </div>
                         <div class="ui-form-content">
                             <div class="ui-ctl-xs ui-ctl-textarea ui-ctl-w100">
-                                <textarea v-model="text" name="text" class="ui-ctl-element require"></textarea>
+                                <textarea v-model="toptext" class="ui-ctl-element require"></textarea>
                             </div>
                         </div>
                         <div class="ui-form-content mt-3">
