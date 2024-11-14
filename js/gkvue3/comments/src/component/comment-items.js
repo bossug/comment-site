@@ -2,7 +2,7 @@ import {Dom, Loc} from 'main.core';
 import {Items} from './items'
 import {CommentFormNoauth} from "./form/comment-form-noauth";
 import {CommentFormAuth} from "./form/comment-form-auth";
-import {IconCommenting, IconClose} from "./icons/icon-complete";
+import {IconCommenting, IconClose, CustomPreloader} from "./icons/icon-complete";
 import {reactive} from "ui.vue3";
 const {runAction} = BX.ajax;
 export const CommentItems = {
@@ -12,6 +12,7 @@ export const CommentItems = {
         CommentFormNoauth,
         CommentFormAuth,
         IconCommenting,
+        CustomPreloader,
         IconClose
     },
     data()
@@ -21,6 +22,11 @@ export const CommentItems = {
         const arResult = reactive({});
         arResult.path = url.pathname;
         arResult.query = url.search;
+
+        const loading = reactive({
+            isLoading: true
+        });
+
         runAction('gk:comments.CC.ResponseGkComments.getComment',{
             data: {
                 path: arResult.path,
@@ -32,6 +38,12 @@ export const CommentItems = {
             arResult.userId = response.data.userId
             arResult.isAdmin = response.data.isAdmin
             arResult.isShow = response.data.isShow
+
+            // Устанавливаем isLoading в false, как только данные полностью загружены и обработаны, с небольшим тиймаутом
+            setTimeout(function() {
+                loading.isLoading = false;
+            }, 1000);
+
         })
         return {
             showComment: false,
@@ -45,6 +57,7 @@ export const CommentItems = {
             isFullName: false,
             fullName: '',
             userData: userData,
+            loading
         }
     },
     computed: {
@@ -150,89 +163,98 @@ export const CommentItems = {
         },
     },
     template: `
-            <div>
-                <div class="comment-header" v-if="isShow">
-                    <div class="comment-button-body mb-3" v-if="isUser">
-                        <div class="title">{{name}}</div>
-                        <div class="blockButton">
-                            <div class="ui-ctl-label-text line-block-form" @click="openCommentAuth" v-if="!showComment" role="button">
-                                <i>
-                                    <IconCommenting/>
-                                </i> <input class="ui-ctl-element" readonly="readonly" type="text" :placeholder="$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')">
+           <template v-if="loading.isLoading">
+                <transition name="fade" @before-enter="beforeEnter" @enter="enter" @leave="leave">
+                    <div class="custom-preloader">
+                        <CustomPreloader />
+                    </div>
+                </transition>
+            </template>
+            <template v-else>
+               <div>
+                    <div class="comment-header" v-if="isShow">
+                        <div class="comment-button-body mb-3" v-if="isUser">
+                            <div class="title">{{name}}</div>
+                            <div class="blockButton">
+                                <div class="ui-ctl-label-text line-block-form" @click="openCommentAuth" v-if="!showComment" role="button">
+                                    <i>
+                                        <IconCommenting/>
+                                    </i> <input class="ui-ctl-element" readonly="readonly" type="text" :placeholder="$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')">
+                                </div>
+                                <div class="ui-ctl-label-text closeComments" @click="closeCommentAuth" v-if="showComment" role="button">
+                                    <i>
+                                        <IconClose/>
+                                    </i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}
+                                </div>
                             </div>
-                            <div class="ui-ctl-label-text closeComments" @click="closeCommentAuth" v-if="showComment" role="button">
-                                <i>
-                                    <IconClose/>
-                                </i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}
+                            <div class="ui-form form-body" v-if="showComment">
+                                <CommentFormAuth
+                                    :showComment="showComment" 
+                                    :path="path" 
+                                    @open-comment-auth="openCommentAuth" 
+                                    @close-comment="closeComment" 
+                                    @button-send-comment="buttonSendComment"
+                                />
                             </div>
                         </div>
-                        <div class="ui-form form-body" v-if="showComment">
-                            <CommentFormAuth
+                        <div class="comment-button-body mb-3" v-else>
+                            <CommentFormNoauth 
                                 :showComment="showComment" 
                                 :path="path" 
-                                @open-comment-auth="openCommentAuth" 
-                                @close-comment="closeComment" 
+                                :isFullName="isFullName" 
+                                :fullName="fullName" 
+                                :userData="userData" 
+                                @open-comment-not-auth="openCommentNotAuth" 
+                                @close-comment-auth="closeCommentAuth" 
                                 @button-send-comment="buttonSendComment"
                             />
                         </div>
                     </div>
-                    <div class="comment-button-body mb-3" v-else>
-                        <CommentFormNoauth 
-                            :showComment="showComment" 
-                            :path="path" 
-                            :isFullName="isFullName" 
-                            :fullName="fullName" 
-                            :userData="userData" 
-                            @open-comment-not-auth="openCommentNotAuth" 
-                            @close-comment-auth="closeCommentAuth" 
-                            @button-send-comment="buttonSendComment"
-                        />
+                    <div class="comment-body" id="comment-body">
+                        <template v-for="(post, index) in arResult.arrayComment" :key="index">
+                            <Items  v-if="(post.COMMENT_ID == 0)" appear :duration="{ enter: 500, leave: 500 }" 
+                                :name="post.NAME"
+                                :text="post.COMMENT"
+                                :icon="post.icon"
+                                :elementid="post.COMMENT_ID"
+                                :data="post.data"
+                                :timedata="post.timeData"
+                                :letter="post.letter"
+                                :id="post.ID"
+                                :isauthor="post.author" 
+                                :show="true"
+                                :child="false" 
+                                :path="path" 
+                                :userid="arResult.userId" 
+                                :isuser="isUser" 
+                                :isFullName="isFullName" 
+                                :userData="userData" 
+                                @message-callback="ParentCall"
+                                @sub-comment="buttonSendComment" 
+                                @edit-comment="buttonEditComment"
+                            />
+                            <template v-if="post.sub"  v-for="(spost, sindex) in post.sub" :key="sindex">
+                                <Items 
+                                    :name="spost.NAME"
+                                    :text="spost.COMMENT"
+                                    :icon="spost.icon"
+                                    :elementid="spost.COMMENT_ID"
+                                    :data="spost.data"
+                                    :timedata="spost.timeData"
+                                    :letter="spost.letter"
+                                    :id="spost.ID"
+                                    :isauthor="spost.author" 
+                                    :isfullname="isFullName" 
+                                    :show="true" 
+                                    :child="true" 
+                                    :path="path" 
+                                    :userData="userData" 
+                                    @edit-comment="buttonEditComment" 
+                                    @message-callback="ParentCall"/>
+                            </template>
+                        </template>
                     </div>
                 </div>
-                <div class="comment-body" id="comment-body">
-                    <template v-for="(post, index) in arResult.arrayComment" :key="index">
-                        <Items  v-if="(post.COMMENT_ID == 0)" appear :duration="{ enter: 500, leave: 500 }" 
-                            :name="post.NAME"
-                            :text="post.COMMENT"
-                            :icon="post.icon"
-                            :elementid="post.COMMENT_ID"
-                            :data="post.data"
-                            :timedata="post.timeData"
-                            :letter="post.letter"
-                            :id="post.ID"
-                            :isauthor="post.author" 
-                            :show="true"
-                            :child="false" 
-                            :path="path" 
-                            :userid="arResult.userId" 
-                            :isuser="isUser" 
-                            :isFullName="isFullName" 
-                            :userData="userData" 
-                            @message-callback="ParentCall"
-                            @sub-comment="buttonSendComment" 
-                            @edit-comment="buttonEditComment"
-                        />
-                        <template v-if="post.sub"  v-for="(spost, sindex) in post.sub" :key="sindex">
-                            <Items 
-                                :name="spost.NAME"
-                                :text="spost.COMMENT"
-                                :icon="spost.icon"
-                                :elementid="spost.COMMENT_ID"
-                                :data="spost.data"
-                                :timedata="spost.timeData"
-                                :letter="spost.letter"
-                                :id="spost.ID"
-                                :isauthor="spost.author" 
-                                :isfullname="isFullName" 
-                                :show="true" 
-                                :child="true" 
-                                :path="path" 
-                                :userData="userData" 
-                                @edit-comment="buttonEditComment" 
-                                @message-callback="ParentCall"/>
-                        </template>
-                    </template>
-                </div>
-            </div>
+            </template>           
     `
 }
