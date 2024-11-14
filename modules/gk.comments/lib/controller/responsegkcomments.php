@@ -7,6 +7,7 @@ use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Engine\ActionFilter;
 use Bitrix\Main\Type\DateTime;
 use GK\COMMENTS\ORM\GkCommentsTable;
+use Widgets\Astra\Option;
 
 class ResponseGkComments extends Controller
 {
@@ -182,6 +183,8 @@ class ResponseGkComments extends Controller
     }
     public function getCommentAction()
     {
+        $setChpu = \Bitrix\Main\Config\Option::get('gk.comments','setChpu');
+        $setHome = \Bitrix\Main\Config\Option::get('gk.comments','setHome');
         $request = Application::getInstance()->getContext()->getRequest();
         $userId = \Bitrix\Main\Engine\CurrentUser::get()->getId();
         $isAdmin = \Bitrix\Main\Engine\CurrentUser::get()->isAdmin();
@@ -207,11 +210,26 @@ class ResponseGkComments extends Controller
         ];
         if ($path === '/' || $path === '') {
             // мы на главной
-            //$params['filter']['COMMENT_ID'] = 0;
+            if ($setHome === 'Y') {
+                $params['filter']['COMMENT_ID'] = 0;
+                $params['limit'] = 10;
+            } else {
+                return [
+                    'object' => [],
+                    'userId' => $userId,
+                    'isAdmin' => $isAdmin,
+                    'isShow' => false,
+                ];
+            }
         } else {
             //$params['filter']['=PATH'] = $path;
         }
-        $params['filter']['=PATH'] = $path;
+        if ($setChpu !== 'Y') {
+            $params['filter']['=QUERY'] = $query;
+            $params['filter']['=PATH'] = $path;
+        } else {
+            $params['filter']['=PATH'] = $path;
+        }
         $objs = GkCommentsTable::getList($params);
         $result = [];
         $objTime = $objTimeLast = new DateTime();
@@ -239,7 +257,8 @@ class ResponseGkComments extends Controller
         return [
             'object' => $result,
             'userId' => $userId,
-            'isAdmin' => $isAdmin
+            'isAdmin' => $isAdmin,
+            'isShow' => true,
         ];
     }
 

@@ -31,6 +31,7 @@ export const CommentItems = {
             arResult.arrayComment = response.data.object;
             arResult.userId = response.data.userId
             arResult.isAdmin = response.data.isAdmin
+            arResult.isShow = response.data.isShow
         })
         return {
             showComment: false,
@@ -54,6 +55,10 @@ export const CommentItems = {
         isAdmin()
         {
             return this.arResult.isAdmin;
+        },
+        isShow()
+        {
+            return this.arResult.isShow;
         },
         isFormValid() {
             const { NAME, LAST_NAME, EMAIL, text } = this;
@@ -146,7 +151,7 @@ export const CommentItems = {
     },
     template: `
             <div>
-                <div class="comment-header">
+                <div class="comment-header" v-if="isShow">
                     <div class="comment-button-body mb-3" v-if="isUser">
                         <div class="title">{{name}}</div>
                         <div class="blockButton">
