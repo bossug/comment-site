@@ -211,7 +211,7 @@ class ResponseGkComments extends Controller
         if ($path === '/' || $path === '') {
             // мы на главной
             if ($setHome === 'Y') {
-                $params['filter']['COMMENT_ID'] = 0;
+                //$params['filter']['COMMENT_ID'] = 0;
                 $params['limit'] = 10;
             } else {
                 return [
