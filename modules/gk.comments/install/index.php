@@ -122,15 +122,20 @@ class gk_comments extends CModule
     {
         CopyDirFiles(
             $_SERVER['DOCUMENT_ROOT'].'/local/modules/'.$this->MODULE_ID.'/install/admin/',
-            $_SERVER['DOCUMENT_ROOT'].'/bitrix/admin'
+            $_SERVER['DOCUMENT_ROOT'].'/bitrix/admin',
+            true,
         );
         CopyDirFiles(
-            $_SERVER['DOCUMENT_ROOT'].'/local/modules/'.$this->MODULE_ID.'/install/local/components/',
-            $_SERVER['DOCUMENT_ROOT'].'/local/components'
+            Application::getDocumentRoot().'/local/modules/'.$this->MODULE_ID.'/install/local/components',
+            Application::getDocumentRoot().'/local/components',
+            true,
+            true,
         );
         CopyDirFiles(
-            $_SERVER['DOCUMENT_ROOT'].'/local/modules/'.$this->MODULE_ID.'/install/local/js/',
-            $_SERVER['DOCUMENT_ROOT'].'/local/js'
+            Application::getDocumentRoot().'/local/modules/'.$this->MODULE_ID.'/install/local/js',
+            Application::getDocumentRoot().'/local/js',
+            true,
+            true,
         );
 
         return true;
@@ -139,16 +144,16 @@ class gk_comments extends CModule
     public function unInstallFiles()
     {
         DeleteDirFiles(
-            $_SERVER['DOCUMENT_ROOT'].'/local/modules/'.$this->MODULE_ID.'/install/admin/',
-            $_SERVER['DOCUMENT_ROOT'].'/bitrix/admin'
+            Application::getDocumentRoot().'/local/modules/'.$this->MODULE_ID.'/install/admin/',
+            Application::getDocumentRoot().'/bitrix/admin'
         );
         DeleteDirFiles(
-            $_SERVER['DOCUMENT_ROOT'].'/local/modules/'.$this->MODULE_ID.'/install/local/components/',
-            $_SERVER['DOCUMENT_ROOT'].'/local/components'
+            Application::getDocumentRoot().'/local/modules/'.$this->MODULE_ID.'/install/local/components',
+            Application::getDocumentRoot().'/local/components'
         );
         DeleteDirFiles(
-            $_SERVER['DOCUMENT_ROOT'].'/local/modules/'.$this->MODULE_ID.'/install/local/js/',
-            $_SERVER['DOCUMENT_ROOT'].'/local/js'
+            Application::getDocumentRoot().'/local/modules/'.$this->MODULE_ID.'/install/local/js',
+            Application::getDocumentRoot().'/local/js'
         );
 
         return true;
