@@ -2,9 +2,6 @@
 
     use Bitrix\Main\{Config\Option as BxOption, HttpApplication, Loader, Localization\Loc};
 
-    //require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_admin_before.php');
-    //Extension::load('ui.bootstrap4');
-
     Loc::loadMessages(__FILE__);
 
     $request = HttpApplication::getInstance()->getContext()->getRequest();
@@ -18,30 +15,36 @@
             'TAB' => Loc::getMessage('GK_COMMENTS_WIDGET_OPTIONS_TAB_SETTINGS'),
             'TITLE' => Loc::getMessage('GK_COMMENTS_WIDGET_OPTIONS_TITLE_SETTINGS'),
             'OPTIONS' => [
-                /*[
-                    'savePostTable',
-                    'Хранить историю событий post',
-                    BxOption::get('widgets.astra', 'savePostTable') && 'Y',
-                    ['checkbox', 'savePostTable']
+                'Базовые настройки',
+                ['note' => 'Модуль в данное время рассчитан на работу с ЧПУ'],
+                [
+                    'setChpu',
+                    'Установка на ЧПУ',
+                    BxOption::get('gk.comments', 'setChpu') && 'Y',
+                    ['checkbox', 'setChpu']
                 ],
                 [
-                    'savePutTable',
-                    'Хранить историю событий put',
-                    BxOption::get('widgets.astra', 'savePutTable') && 'Y',
-                    ['checkbox', 'savePutTable']
+                    'setHome',
+                    'Выводить на главной',
+                    BxOption::get('gk.comments', 'setHome') && 'Y',
+                    ['checkbox', 'setHome']
+                ],
+                ['note' => 'С данной опцией будут выводиться последние 10 комментариев'],
+                [
+                    'setAnonim',
+                    'Комментарии могут оставлять анонимные пользователи',
+                    BxOption::get('gk.comments', 'setAnonim') && 'Y',
+                    ['checkbox', 'setAnonim']
                 ],
                 [
-                    'saveDeleteTable',
-                    'Хранить историю событий delete',
-                    BxOption::get('widgets.astra', 'saveDeleteTable') && 'Y',
-                    ['checkbox', 'saveDeleteTable']
+                    'deleteElement',
+                    'Не удалять комменты полностью <span id="hint_1"></span>',
+                    BxOption::get('widgets.astra', 'deleteElement') && 'Y',
+                    ['checkbox', 'deleteElement'],
                 ],
-                [
-                    'saveDeleteElement',
-                    'Удалять элементы полностью <span id="hint_1"></span>',
-                    BxOption::get('widgets.astra', 'saveDeleteElement') && 'Y',
-                    ['checkbox', 'saveDeleteElement'],
-                ],*/
+                ['note' => 'Приустановленной опции комментарии не будут удаляться физически, а будет проставляться флаг удаления'],
+                'Размещение кода',
+                ['note' => 'Разместить код шаблона в любом месте где нужно вывести комментарии<br>$APPLICATION->IncludeComponent("gk:comments", "", [], false );']
             ]
         ]
     ];
@@ -95,15 +98,23 @@
     ?>
     <input type="submit" name="apply" value="<?= Loc::getMessage('GK_COMMENTS_WIDGET_OPTIONS_APPLY') ?>"
            class="adm-btn-save"/>
-    <input type="submit" name="default" value="<?= Loc::getMessage('GK_COMMENTS_WIDGET_OPTIONS_DEFAULT') ?>"/>
     <?php echo(bitrix_sessid_post()); ?>
 </form>
 <script>
-    BX.hint_replace(BX('hint_1'), 'всплывающий хинт');
+    BX.hint_replace(BX('hint_1'), 'Не полное удаление');
 </script>
 <style>
     #edit_edit_table td > * {
         margin-bottom: 20px;
+    }
+    #edit table td {
+        vertical-align: baseline;
+    }
+    #edit table td:first-child {
+        text-align: right;
+    }
+    #edit table td:last-child {
+        margin-left: 20px;
     }
 
     #edit_edit_table td select {
