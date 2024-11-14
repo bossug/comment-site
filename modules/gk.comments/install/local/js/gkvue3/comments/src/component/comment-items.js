@@ -1,14 +1,22 @@
 import {Dom, Loc} from 'main.core';
 import {Items} from './items'
+import {CommentFormNoauth} from "./form/comment-form-noauth";
+import {CommentFormAuth} from "./form/comment-form-auth";
+import {IconCommenting, IconClose} from "./icons/icon-complete";
 import {reactive} from "ui.vue3";
-const {runAction, prepareForm} = BX.ajax;
+const {runAction} = BX.ajax;
 export const CommentItems = {
     components:
     {
-        Items
+        Items,
+        CommentFormNoauth,
+        CommentFormAuth,
+        IconCommenting,
+        IconClose
     },
     data()
     {
+        let userData = BX.localStorage.get('userData');
         let url = new URL(location);
         const arResult = reactive({});
         arResult.path = url.pathname;
@@ -19,10 +27,11 @@ export const CommentItems = {
                 query: arResult.query
             }
         }).then(function(response){
-            console.log(response.data)
+            //console.log(response.data)
             arResult.arrayComment = response.data.object;
             arResult.userId = response.data.userId
             arResult.isAdmin = response.data.isAdmin
+            arResult.isShow = response.data.isShow
         })
         return {
             showComment: false,
@@ -33,6 +42,9 @@ export const CommentItems = {
             LAST_NAME: null,
             EMAIL: null,
             text: null,
+            isFullName: false,
+            fullName: '',
+            userData: userData,
         }
     },
     computed: {
@@ -43,6 +55,10 @@ export const CommentItems = {
         isAdmin()
         {
             return this.arResult.isAdmin;
+        },
+        isShow()
+        {
+            return this.arResult.isShow;
         },
         isFormValid() {
             const { NAME, LAST_NAME, EMAIL, text } = this;
@@ -66,24 +82,24 @@ export const CommentItems = {
         {
             this.showComment = true;
         },
-        buttonSendComment(path, query, userId)
+        buttonSendComment(data)
         {
             const {arResult} = this;
             runAction('gk:comments.CC.ResponseGkComments.setComment',{
                 data: {
-                    NAME: this.NAME,
-                    LAST_NAME: this.LAST_NAME,
-                    EMAIL: this.EMAIL,
-                    text: this.text,
-                    path: path,
-                    query: query,
-                    USER_ID: userId
+                    NAME: data.NAME,
+                    LAST_NAME: data.LAST_NAME,
+                    EMAIL: data.EMAIL,
+                    text: data.text,
+                    path: data.path,
+                    USER_ID: data.userId,
+                    comment_id: data.comment_id
                 }
             }).then(function(comment){
-                $('#closeComments').trigger('click')
+                $('.closeComments').trigger('click')
                 arResult.arrayComment = comment.data.object
-                arResult.userId = response.data.userId
-                arResult.isAdmin = response.data.isAdmin
+                arResult.userId = comment.data.userId
+                arResult.isAdmin = comment.data.isAdmin
             });
         },
         buttonSendSubComment(data)
@@ -94,8 +110,20 @@ export const CommentItems = {
             }).then(function(comment){
                 $('.fa-close').trigger('click')
                 arResult.arrayComment = comment.data.object;
-                arResult.userId = response.data.userId
-                arResult.isAdmin = response.data.isAdmin
+                arResult.userId = comment.data.userId
+                arResult.isAdmin = comment.data.isAdmin
+            });
+        },
+        buttonEditComment(data)
+        {
+            const {arResult} = this;
+            runAction('gk:comments.CC.ResponseGkComments.editComment',{
+                data: data
+            }).then(function(comment){
+                $('.fa-close').trigger('click')
+                arResult.arrayComment = comment.data.object;
+                arResult.userId = comment.data.userId
+                arResult.isAdmin = comment.data.isAdmin
             });
         },
         ParentCall(fmethod, id)
@@ -108,7 +136,6 @@ export const CommentItems = {
                         path: this.path
                     }
                 }).then(function (comment) {
-                    //arResult.arrayComment = comment.data
                     let object = BX.findChild(BX('comment-body'), {className: 'comment-item' }, true, true);
                     object.forEach(function (element) {
                         if (element.getAttribute('data-id') === id) {
@@ -124,95 +151,47 @@ export const CommentItems = {
     },
     template: `
             <div>
-                <div class="comment-header">
+                <div class="comment-header" v-if="isShow">
                     <div class="comment-button-body mb-3" v-if="isUser">
                         <div class="title">{{name}}</div>
                         <div class="blockButton">
                             <div class="ui-ctl-label-text line-block-form" @click="openCommentAuth" v-if="!showComment" role="button">
-                                <i class="fa fa-comment"></i> <input class="ui-ctl-element" readonly="readonly" type="text" :placeholder="$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')">
+                                <i>
+                                    <IconCommenting/>
+                                </i> <input class="ui-ctl-element" readonly="readonly" type="text" :placeholder="$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')">
                             </div>
-                            <div class="ui-ctl-label-text" @click="closeCommentAuth" v-if="showComment" id="closeComments" role="button"><i class="fa fa-close"></i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}</div>
+                            <div class="ui-ctl-label-text closeComments" @click="closeCommentAuth" v-if="showComment" role="button">
+                                <i>
+                                    <IconClose/>
+                                </i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}
+                            </div>
                         </div>
                         <div class="ui-form form-body" v-if="showComment">
-                            <form id="addComment" class="ui-ctl-w100" @submit.prevent="buttonSendComment(path,query,arResult.userId)">
-                                <div class="ui-form-row">
-                                    <div class="ui-form-label">
-                                        <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_COMMENT')}}</div>
-                                    </div>
-                                    <div class="ui-form-content">
-                                        <div class="ui-ctl-xs ui-ctl-textarea ui-ctl-w100">
-                                            <textarea v-model="text" name="text" class="ui-ctl-element require"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="ui-form-content mt-3">
-                                        <input class="ui-btn ui-btn-success" type="submit" :value="$Bitrix.Loc.getMessage('SEND_COMMENT')" />
-                                    </div>
-                                <div>
-                            </form>
+                            <CommentFormAuth
+                                :showComment="showComment" 
+                                :path="path" 
+                                @open-comment-auth="openCommentAuth" 
+                                @close-comment="closeComment" 
+                                @button-send-comment="buttonSendComment"
+                            />
                         </div>
                     </div>
                     <div class="comment-button-body mb-3" v-else>
-                        <div class="button-body">
-                            <div class="title">{{$Bitrix.Loc.getMessage('USER_TITLE')}}</div>
-                            <div class="blockButton">
-                                <div class="ui-ctl-label-text" @click="openCommentNotAuth" v-if="!showComment" role="button"><i class="fa fa-comment"></i> {{$Bitrix.Loc.getMessage('WRITE_TO_COMMENT')}}</div>
-                                <div class="ui-ctl-label-text" @click="closeCommentAuth" v-if="showComment" id="closeComments" role="button"><i class="fa fa-comment"></i> {{$Bitrix.Loc.getMessage('CLOSE_COMMENT')}}</div>
-                            </div>
-                        </div>
-                        <div class="ui-form form-body" v-if="showComment">
-                            <form id="addComment" class="ui-ctl-w100" @submit.prevent="buttonSendComment(path, query, 0)">
-                                <div class="ui-form-row-inline">
-                                    <div class="ui-form-row">
-                                        <div class="ui-form-label">
-                                            <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_NAME')}}</div>
-                                        </div>
-                                        <div class="ui-form-content">
-                                            <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
-                                                <input type="text" v-model="NAME" name="NAME" class="ui-ctl-element">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="ui-form-row">
-                                        <div class="ui-form-label">
-                                            <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_LAST_NAME')}}</div>
-                                        </div>
-                                        <div class="ui-form-content">
-                                            <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
-                                                <input type="text" v-model="LAST_NAME" name="LAST_NAME" class="ui-ctl-element">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="ui-form-row">
-                                        <div class="ui-form-label">
-                                            <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_EMAIL')}}</div>
-                                        </div>
-                                        <div class="ui-form-content">
-                                            <div class="ui-ctl-xs ui-ctl-textbox ui-ctl-w100">
-                                                <input type="text" v-model="EMAIL" name="EMAIL" class="ui-ctl-element">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="ui-form-row">
-                                    <div class="ui-form-label">
-                                        <div class="ui-ctl-label-text">{{$Bitrix.Loc.getMessage('YOUR_COMMENT')}}</div>
-                                    </div>
-                                    <div class="ui-form-content">
-                                        <div class="ui-ctl-xs ui-ctl-textarea ui-ctl-w100">
-                                            <textarea v-model="text" name="text" class="ui-ctl-element require"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="ui-form-content mt-3">
-                                        <input class="ui-btn ui-btn-success" type="submit" :value="$Bitrix.Loc.getMessage('SEND_COMMENT')" />
-                                    </div>
-                                <div>
-                            </form>
-                        </div>
+                        <CommentFormNoauth 
+                            :showComment="showComment" 
+                            :path="path" 
+                            :isFullName="isFullName" 
+                            :fullName="fullName" 
+                            :userData="userData" 
+                            @open-comment-not-auth="openCommentNotAuth" 
+                            @close-comment-auth="closeCommentAuth" 
+                            @button-send-comment="buttonSendComment"
+                        />
                     </div>
                 </div>
                 <div class="comment-body" id="comment-body">
                     <template v-for="(post, index) in arResult.arrayComment" :key="index">
-                        <Items  v-if="(post.COMMENT_ID == 0)" 
+                        <Items  v-if="(post.COMMENT_ID == 0)" appear :duration="{ enter: 500, leave: 500 }" 
                             :name="post.NAME"
                             :text="post.COMMENT"
                             :icon="post.icon"
@@ -227,8 +206,11 @@ export const CommentItems = {
                             :path="path" 
                             :userid="arResult.userId" 
                             :isuser="isUser" 
+                            :isFullName="isFullName" 
+                            :userData="userData" 
                             @message-callback="ParentCall"
-                            @sub-comment="buttonSendSubComment"
+                            @sub-comment="buttonSendComment" 
+                            @edit-comment="buttonEditComment"
                         />
                         <template v-if="post.sub"  v-for="(spost, sindex) in post.sub" :key="sindex">
                             <Items 
@@ -241,8 +223,12 @@ export const CommentItems = {
                                 :letter="spost.letter"
                                 :id="spost.ID"
                                 :isauthor="spost.author" 
+                                :isfullname="isFullName" 
                                 :show="true" 
                                 :child="true" 
+                                :path="path" 
+                                :userData="userData" 
+                                @edit-comment="buttonEditComment" 
                                 @message-callback="ParentCall"/>
                         </template>
                     </template>

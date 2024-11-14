@@ -1,34 +1,46 @@
-import {BitrixVue, reactive} from "ui.vue3";
-import {CommentItems} from "./component/comment-items";
+import { BitrixVue, reactive } from "ui.vue3";
+import { CommentItems } from "./component/comment-items";
 import './comments.css'
 
-export class Comments
-{
+export class Comments {
 	#application;
+	state = reactive({
+		isVisible: false,
+	});
 
-	constructor(rootNode)
-	{
+	constructor(rootNode) {
 		this.rootNode = document.querySelector(rootNode);
 	}
 
-	start()
-	{
+	start() {
 		this.getTemplate();
+		this.showComponentAfterDelay();
 	}
 
-	getTemplate()
-	{
+	async showComponentAfterDelay() {
+		setTimeout(() => {
+			this.state.isVisible = true;
+		}, 150);
+	}
+
+	getTemplate() {
 		const context = this;
 		this.#application = BitrixVue.createApp({
 			components: {
 				CommentItems
 			},
-			beforeCreate()
-			{
+			data() {
+				return {
+					state: context.state
+				};
+			},
+			beforeCreate() {
 				this.$bitrix.Application.set(context);
 			},
-			template: '<CommentItems/>',
-		})
+			template: `
+				<CommentItems class="comments-wrapper" :class="{ 'is-visible': state.isVisible }"/>
+			`,
+		});
 
 		this.#application.mount(this.rootNode);
 	}
