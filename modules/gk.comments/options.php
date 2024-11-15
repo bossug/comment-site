@@ -24,6 +24,12 @@
                     ['checkbox', 'setChpu']
                 ],
                 [
+                    'setCount',
+                    'Кол-во сообщений на страницу',
+                    BxOption::get('gk.comments', 'setCount') ?: '10',
+                    ['text', 20]
+                ],
+                [
                     'setHome',
                     'Выводить на главной',
                     BxOption::get('gk.comments', 'setHome') && 'Y',

@@ -1,9 +1,9 @@
-import {Dom, Loc} from 'main.core';
 import {Items} from './items'
 import {CommentFormNoauth} from "./form/comment-form-noauth";
 import {CommentFormAuth} from "./form/comment-form-auth";
-import {IconCommenting, IconClose, CustomPreloader} from "./icons/icon-complete";
+import {IconCommenting, IconClose, CustomPreloader, ArrowLeft, ArrowRight} from "./icons/icon-complete";
 import {reactive} from "ui.vue3";
+import './comment-items.css';
 const {runAction} = BX.ajax;
 export const CommentItems = {
     components:
@@ -13,7 +13,9 @@ export const CommentItems = {
         CommentFormAuth,
         IconCommenting,
         CustomPreloader,
-        IconClose
+        IconClose,
+        ArrowRight,
+        ArrowLeft
     },
     data()
     {
@@ -33,11 +35,36 @@ export const CommentItems = {
                 query: arResult.query
             }
         }).then(function(response){
-            //console.log(response.data)
-            arResult.arrayComment = response.data.object;
-            arResult.userId = response.data.userId
-            arResult.isAdmin = response.data.isAdmin
-            arResult.isShow = response.data.isShow
+            if (response.data.page > 1) {
+                runAction('gk:comments.CC.ResponseGkComments.getComment',{
+                    data: {
+                        path: arResult.path,
+                        query: arResult.query,
+                        page: response.data.page
+                    }
+                }).then(function(response) {
+                    //console.log(response.data)
+                    arResult.arrayComment = response.data.object;
+                    arResult.arrayCount = Object.keys(response.data.object);
+                    arResult.Counts = response.data.counts;
+                    arResult.Page = response.data.page;
+                    arResult.Pages = response.data.pages;
+                    arResult.userId = response.data.userId
+                    arResult.isAdmin = response.data.isAdmin
+                    arResult.isShow = response.data.isShow;
+                    arResult.Limit = response.data.limit;
+                })
+            } else {
+                arResult.arrayComment = response.data.object;
+                arResult.arrayCount = Object.keys(response.data.object);
+                arResult.Counts = response.data.counts;
+                arResult.Page = response.data.page;
+                arResult.Pages = response.data.pages;
+                arResult.userId = response.data.userId
+                arResult.isAdmin = response.data.isAdmin
+                arResult.isShow = response.data.isShow;
+                arResult.Limit = response.data.limit;
+            }
 
             // Устанавливаем isLoading в false, как только данные полностью загружены и обработаны, с небольшим тиймаутом
             setTimeout(function() {
@@ -57,7 +84,9 @@ export const CommentItems = {
             isFullName: false,
             fullName: '',
             userData: userData,
-            loading
+            loading,
+            page: 0,
+            pages: 1,
         }
     },
     computed: {
@@ -106,13 +135,42 @@ export const CommentItems = {
                     text: data.text,
                     path: data.path,
                     USER_ID: data.userId,
-                    comment_id: data.comment_id
+                    comment_id: data.comment_id,
+                    page: this.arResult.Pages
                 }
             }).then(function(comment){
                 $('.closeComments').trigger('click')
-                arResult.arrayComment = comment.data.object
-                arResult.userId = comment.data.userId
-                arResult.isAdmin = comment.data.isAdmin
+                if (comment.data.page !== comment.data.pages) {
+                    runAction('gk:comments.CC.ResponseGkComments.getComment',{
+                        data: {
+                            path: arResult.path,
+                            query: arResult.query,
+                            page: comment.data.page
+                        }
+                    }).then(function(comment){
+                        arResult.arrayComment = comment.data.object
+                        arResult.userId = comment.data.userId
+                        arResult.isAdmin = comment.data.isAdmin
+                        arResult.arrayCount = Object.keys(comment.data.object);
+                        arResult.Counts = comment.data.counts;
+                        arResult.Page = comment.data.page;
+                        arResult.Pages = comment.data.pages;
+                        arResult.userId = comment.data.userId
+                        arResult.isAdmin = comment.data.isAdmin
+                        arResult.isShow = comment.data.isShow
+                    })
+                } else {
+                    arResult.arrayComment = comment.data.object
+                    arResult.userId = comment.data.userId
+                    arResult.isAdmin = comment.data.isAdmin
+                    arResult.arrayCount = Object.keys(comment.data.object);
+                    arResult.Counts = comment.data.counts;
+                    arResult.Page = comment.data.page;
+                    arResult.Pages = comment.data.pages;
+                    arResult.userId = comment.data.userId
+                    arResult.isAdmin = comment.data.isAdmin
+                    arResult.isShow = comment.data.isShow
+                }
             });
         },
         buttonSendSubComment(data)
@@ -122,21 +180,77 @@ export const CommentItems = {
                 data: data
             }).then(function(comment){
                 $('.fa-close').trigger('click')
-                arResult.arrayComment = comment.data.object;
-                arResult.userId = comment.data.userId
-                arResult.isAdmin = comment.data.isAdmin
+                if (comment.data.page !== comment.data.pages) {
+                    runAction('gk:comments.CC.ResponseGkComments.getComment',{
+                        data: {
+                            path: arResult.path,
+                            query: arResult.query,
+                            page: comment.data.page
+                        }
+                    }).then(function(comment){
+                        arResult.arrayComment = comment.data.object
+                        arResult.userId = comment.data.userId
+                        arResult.isAdmin = comment.data.isAdmin
+                        arResult.arrayCount = Object.keys(comment.data.object);
+                        arResult.Counts = comment.data.counts;
+                        arResult.Page = comment.data.page;
+                        arResult.Pages = comment.data.pages;
+                        arResult.userId = comment.data.userId
+                        arResult.isAdmin = comment.data.isAdmin
+                        arResult.isShow = comment.data.isShow
+                    })
+                } else {
+                    arResult.arrayComment = comment.data.object
+                    arResult.userId = comment.data.userId
+                    arResult.isAdmin = comment.data.isAdmin
+                    arResult.arrayCount = Object.keys(comment.data.object);
+                    arResult.Counts = comment.data.counts;
+                    arResult.Page = comment.data.page;
+                    arResult.Pages = comment.data.pages;
+                    arResult.userId = comment.data.userId
+                    arResult.isAdmin = comment.data.isAdmin
+                    arResult.isShow = comment.data.isShow
+                }
             });
         },
         buttonEditComment(data)
         {
             const {arResult} = this;
             runAction('gk:comments.CC.ResponseGkComments.editComment',{
-                data: data
+                data: data,
             }).then(function(comment){
                 $('.fa-close').trigger('click')
-                arResult.arrayComment = comment.data.object;
-                arResult.userId = comment.data.userId
-                arResult.isAdmin = comment.data.isAdmin
+                if (comment.data.page !== comment.data.pages) {
+                    runAction('gk:comments.CC.ResponseGkComments.getComment',{
+                        data: {
+                            path: arResult.path,
+                            query: arResult.query,
+                            page: comment.data.page
+                        }
+                    }).then(function(comment){
+                        arResult.arrayComment = comment.data.object
+                        arResult.userId = comment.data.userId
+                        arResult.isAdmin = comment.data.isAdmin
+                        arResult.arrayCount = Object.keys(comment.data.object);
+                        arResult.Counts = comment.data.counts;
+                        arResult.Page = comment.data.page;
+                        arResult.Pages = comment.data.pages;
+                        arResult.userId = comment.data.userId
+                        arResult.isAdmin = comment.data.isAdmin
+                        arResult.isShow = comment.data.isShow
+                    })
+                } else {
+                    arResult.arrayComment = comment.data.object
+                    arResult.userId = comment.data.userId
+                    arResult.isAdmin = comment.data.isAdmin
+                    arResult.arrayCount = Object.keys(comment.data.object);
+                    arResult.Counts = comment.data.counts;
+                    arResult.Page = comment.data.page;
+                    arResult.Pages = comment.data.pages;
+                    arResult.userId = comment.data.userId
+                    arResult.isAdmin = comment.data.isAdmin
+                    arResult.isShow = comment.data.isShow
+                }
             });
         },
         ParentCall(fmethod, id)
@@ -155,12 +269,55 @@ export const CommentItems = {
                             element.classList.add('delete')
                         }
                     })
+                    if (comment.data.page !== comment.data.pages) {
+                        runAction('gk:comments.CC.ResponseGkComments.getComment',{
+                            data: {
+                                path: arResult.path,
+                                query: arResult.query,
+                                page: comment.data.page
+                            }
+                        }).then(function(comment){
+                            arResult.arrayComment = comment.data.object
+                            arResult.userId = comment.data.userId
+                            arResult.isAdmin = comment.data.isAdmin
+                            arResult.arrayCount = Object.keys(comment.data.object);
+                            arResult.Counts = comment.data.counts;
+                            arResult.Page = comment.data.page;
+                            arResult.Pages = comment.data.pages;
+                            arResult.userId = comment.data.userId
+                            arResult.isAdmin = comment.data.isAdmin
+                            arResult.isShow = comment.data.isShow
+                        })
+                    }
                 });
             }
-            if (fmethod === 'edit') {
-
-            }
         },
+        getPagination(event)
+        {
+            const { arResult } = this;
+            if (event === 'next') {
+                this.page = arResult.Pages += 1;
+            } else {
+                this.page = arResult.Pages -= 1;
+            }
+            runAction('gk:comments.CC.ResponseGkComments.getComment',{
+                data: {
+                    path: arResult.path,
+                    query: arResult.query,
+                    page: this.page
+                }
+            }).then(function(response){
+                arResult.arrayComment = response.data.object;
+                arResult.arrayCount = Object.keys(response.data.object);
+                arResult.Counts = response.data.counts;
+                arResult.Page = response.data.page;
+                arResult.Pages = response.data.pages;
+                arResult.userId = response.data.userId
+                arResult.isAdmin = response.data.isAdmin
+                arResult.isShow = response.data.isShow
+                return arResult;
+            })
+        }
     },
     template: `
            <template v-if="loading.isLoading">
@@ -253,6 +410,20 @@ export const CommentItems = {
                                     @message-callback="ParentCall"/>
                             </template>
                         </template>
+                        <ul class="ui-pagination" v-if="(arResult.Page > 1)">
+                            <li v-if="(arResult.Pages > 1)" 
+                                class="ui-btn ui-btn-link ui-btn-icon-arrow-back" 
+                                @click="getPagination('parent')"
+                            >
+                                <ArrowLeft/>
+                            </li>
+                            <li v-if="(arResult.arrayCount.length > arResult.Limit-1)" 
+                                class="ui-btn ui-btn-link ui-btn-icon-arrow-next" 
+                                @click="getPagination('next')"
+                            >
+                                <ArrowRight/>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </template>           

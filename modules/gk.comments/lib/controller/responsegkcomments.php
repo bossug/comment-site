@@ -3,6 +3,7 @@
 namespace GK\COMMENTS\Controller;
 
 use Bitrix\Main\Application;
+use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Engine\ActionFilter;
 use Bitrix\Main\Type\DateTime;
@@ -11,6 +12,15 @@ use Widgets\Astra\Option;
 
 class ResponseGkComments extends Controller
 {
+    public static $pages = 10;
+    public static $isAdmin = false;
+    public static $isUser = false;
+    public static $userId = 0;
+    public static $setHome = 'N';
+    public static $setChpu = 'N';
+    public static $path;
+    public static $query;
+    public static $setCount;
 	public function configureActions(): array
 	{
 		return [
@@ -40,16 +50,18 @@ class ResponseGkComments extends Controller
      */
     public function setCommentAction()
     {
+        self::$setChpu = \Bitrix\Main\Config\Option::get('gk.comments','setChpu');
+        self::$setHome = \Bitrix\Main\Config\Option::get('gk.comments','setHome');
+        self::$setCount = \Bitrix\Main\Config\Option::get('gk.comments','setCount');
         $request = Application::getInstance()->getContext()->getRequest();
-        $path = $request->getPost('path');
-        $userId = \Bitrix\Main\Engine\CurrentUser::get()->getId();
-        $isAdmin = \Bitrix\Main\Engine\CurrentUser::get()->isAdmin();
+        self::$path = $request->getPost('path');
+        self::$userId = \Bitrix\Main\Engine\CurrentUser::get()->getId();
+        self::$isAdmin = \Bitrix\Main\Engine\CurrentUser::get()->isAdmin();
         $commentId = $request->getPost('comment_id');
-        $query = $request->getPost('query');
+        self::$query = $request->getPost('query');
         $list = $request->getPostList()->toArray();
-        if ($path === '/' || $path === '') {
-            // мы на главной
-        }
+        self::$pages = $request->getPost('page');
+
         $fields = [
             'COMMENT' => $list['text'],
             'COMMENT_ID' => $commentId ?? 0,
@@ -58,8 +70,8 @@ class ResponseGkComments extends Controller
             'PATH' => $list['path'] ?: '',
             'QUERY' => $list['query'] ?: '',
         ];
-        if ($userId > 0) {
-            $fields['USER_ID'] = $userId;
+        if (self::$userId > 0) {
+            $fields['USER_ID'] = self::$userId;
         } else {
             $fields['USER_NAME'] = $list['NAME'];
             $fields['USER_LAST_NAME'] = $list['LAST_NAME'];
@@ -68,198 +80,42 @@ class ResponseGkComments extends Controller
 
         $response = GkCommentsTable::add($fields);
         if ($response->isSuccess()) {
-            $params = [
-                'count_total' => 1,
-                'order' => ['DATE_CREATE' => 'ASC'],
-                'select' => ['*',
-                    'USERS_AVATAR' => 'USERS.PERSONAL_PHOTO',
-                    'USERS_NAME' => 'USERS.NAME',
-                    'USERS_LAST_NAME' => 'USERS.LAST_NAME',
-                    'USERS_EMAIL' => 'USERS.EMAIL'
-                ],
-                'runtime' => [
-                    (new \Bitrix\Main\ORM\Fields\Relations\Reference(
-                        'USERS',
-                        \Bitrix\Main\UserTable::class,
-                        \Bitrix\Main\ORM\Query\Join::on('this.USER_ID', 'ref.ID')
-                    ))
-                ]
-            ];
-            if ($path === '/' || $path === '') {
-                // мы на главной
-                //$params['filter']['COMMENT_ID'] = 0;
-            } else {
-                //$params['filter']['=PATH'] = $path;
-            }
-            $params['filter']['=PATH'] = $path;
-            $objs = GkCommentsTable::getList($params);
-            $result = [];
-            $objTime = $objTimeLast = new DateTime();
-            $objTime->add('-1 days');
-            $objTimeLast->add('-2 days');
-            if ($objs->getCount() > 0) {
-                foreach ($objs->fetchAll() as &$obj) {
-                    $obj['data'] = $obj['DATE_CREATE']->format('d.m.Y');
-                    $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp()
-                        ? ($obj['DATE_CREATE']->getTimestamp() < $objTimeLast->getTimestamp() ? $obj['DATE_CREATE']->format('d.m.Y') : 'вчера')
-                        : 'сегодня';
-                    $obj['letter'] = $obj['USER_ID'] > 0
-                        ? mb_substr($obj['USERS_LAST_NAME'], 0, 1).mb_substr($obj['USERS_NAME'], 0, 1)
-                        : mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
-                    $obj['NAME'] = $obj['USER_ID'] > 0 ? $obj['USERS_LAST_NAME'] . ' ' . $obj['USERS_NAME'] : $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
-                    $obj['icon'] = $obj['USERS_AVATAR'];
-                    $obj['author'] = ($userId > 0 && $userId == $obj['USER_ID']) || $isAdmin;
-                    if ($obj['COMMENT_ID'] > 0) {
-                        $result[$obj['COMMENT_ID']]['sub'][] = $obj;
-                    } else {
-                        $result[$obj['ID']] = $obj;
-                    }
-                }
-            }
+            return self::getListComment();
         }
-        return [
-            'object' => $result,
-            'userId' => $userId,
-            'isAdmin' => $isAdmin
-        ];
+        return [];
     }
 
     public function editCommentAction()
     {
-        $userId = \Bitrix\Main\Engine\CurrentUser::get()->getId();
-        $isAdmin = \Bitrix\Main\Engine\CurrentUser::get()->isAdmin();
+        self::$setChpu = \Bitrix\Main\Config\Option::get('gk.comments','setChpu');
+        self::$setHome = \Bitrix\Main\Config\Option::get('gk.comments','setHome');
+        self::$setCount = \Bitrix\Main\Config\Option::get('gk.comments','setCount');
+        self::$userId = \Bitrix\Main\Engine\CurrentUser::get()->getId();
+        self::$isAdmin = \Bitrix\Main\Engine\CurrentUser::get()->isAdmin();
         $request = Application::getInstance()->getContext()->getRequest();
         $list = $request->getPostList()->toArray();
+        self::$path = $list['path'];
+        self::$query = $list['query'];
+        self::$pages = $request->getPost('page');
         $response = GkCommentsTable::update($list['id'], ['COMMENT' => $list['text']]);
         if ($response->isSuccess()) {
-            $params = [
-                'count_total' => 1,
-                'order' => ['DATE_CREATE' => 'ASC'],
-                'select' => ['*',
-                    'USERS_AVATAR' => 'USERS.PERSONAL_PHOTO',
-                    'USERS_NAME' => 'USERS.NAME',
-                    'USERS_LAST_NAME' => 'USERS.LAST_NAME',
-                    'USERS_EMAIL' => 'USERS.EMAIL'
-                ],
-                'runtime' => [
-                    (new \Bitrix\Main\ORM\Fields\Relations\Reference(
-                        'USERS',
-                        \Bitrix\Main\UserTable::class,
-                        \Bitrix\Main\ORM\Query\Join::on('this.USER_ID', 'ref.ID')
-                    ))
-                ]
-            ];
-            $params['filter']['=PATH'] = $list['path'];
-            $objs = GkCommentsTable::getList($params);
-            $result = [];
-            $objTime = $objTimeLast = new DateTime();
-            $objTime->add('-1 days');
-            $objTimeLast->add('-2 days');
-            if ($objs->getCount() > 0) {
-                foreach ($objs->fetchAll() as &$obj) {
-                    $obj['data'] = $obj['DATE_CREATE']->format('d.m.Y');
-                    $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp()
-                        ? ($obj['DATE_CREATE']->getTimestamp() < $objTimeLast->getTimestamp() ? $obj['DATE_CREATE']->format('d.m.Y') : 'вчера')
-                        : 'сегодня';
-                    $obj['letter'] = $obj['USER_ID'] > 0
-                        ? mb_substr($obj['USERS_LAST_NAME'], 0, 1).mb_substr($obj['USERS_NAME'], 0, 1)
-                        : mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
-                    $obj['NAME'] = $obj['USER_ID'] > 0 ? $obj['USERS_LAST_NAME'] . ' ' . $obj['USERS_NAME'] : $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
-                    $obj['icon'] = $obj['USERS_AVATAR'];
-                    $obj['author'] = ($userId > 0 && $userId == $obj['USER_ID']) || $isAdmin;
-                    if ($obj['COMMENT_ID'] > 0) {
-                        $result[$obj['COMMENT_ID']]['sub'][] = $obj;
-                    } else {
-                        $result[$obj['ID']] = $obj;
-                    }
-                }
-            }
+            return self::getListComment();
         }
-        return [
-            'object' => $result,
-            'userId' => $userId,
-            'isAdmin' => $isAdmin
-        ];
+        return [];
     }
     public function getCommentAction()
     {
-        $setChpu = \Bitrix\Main\Config\Option::get('gk.comments','setChpu');
-        $setHome = \Bitrix\Main\Config\Option::get('gk.comments','setHome');
+        self::$setChpu = \Bitrix\Main\Config\Option::get('gk.comments','setChpu');
+        self::$setHome = \Bitrix\Main\Config\Option::get('gk.comments','setHome');
+        self::$setCount = \Bitrix\Main\Config\Option::get('gk.comments','setCount');
         $request = Application::getInstance()->getContext()->getRequest();
-        $userId = \Bitrix\Main\Engine\CurrentUser::get()->getId();
-        $isAdmin = \Bitrix\Main\Engine\CurrentUser::get()->isAdmin();
-        $path = $request->getPost('path');
-        $query = $request->getPost('query');
+        self::$userId = \Bitrix\Main\Engine\CurrentUser::get()->getId();
+        self::$isAdmin = \Bitrix\Main\Engine\CurrentUser::get()->isAdmin();
+        self::$path = $request->getPost('path');
+        self::$query = $request->getPost('query');
+        self::$pages = $request->getPost('page');
 
-        $params = [
-            'count_total' => 1,
-            'order' => ['DATE_CREATE' => 'ASC'],
-            'select' => ['*',
-                'USERS_AVATAR' => 'USERS.PERSONAL_PHOTO',
-                'USERS_NAME' => 'USERS.NAME',
-                'USERS_LAST_NAME' => 'USERS.LAST_NAME',
-                'USERS_EMAIL' => 'USERS.EMAIL'
-            ],
-            'runtime' => [
-                (new \Bitrix\Main\ORM\Fields\Relations\Reference(
-                    'USERS',
-                    \Bitrix\Main\UserTable::class,
-                    \Bitrix\Main\ORM\Query\Join::on('this.USER_ID', 'ref.ID')
-                ))
-            ]
-        ];
-        if ($path === '/' || $path === '') {
-            // мы на главной
-            if ($setHome === 'Y') {
-                //$params['filter']['COMMENT_ID'] = 0;
-                $params['limit'] = 10;
-            } else {
-                return [
-                    'object' => [],
-                    'userId' => $userId,
-                    'isAdmin' => $isAdmin,
-                    'isShow' => false,
-                ];
-            }
-        } else {
-            //$params['filter']['=PATH'] = $path;
-        }
-        if ($setChpu !== 'Y') {
-            $params['filter']['=QUERY'] = $query;
-            $params['filter']['=PATH'] = $path;
-        } else {
-            $params['filter']['=PATH'] = $path;
-        }
-        $objs = GkCommentsTable::getList($params);
-        $result = [];
-        $objTime = $objTimeLast = new DateTime();
-        $objTime->add('-1 days');
-        $objTimeLast->add('-2 days');
-        if ($objs->getCount() > 0) {
-            foreach ($objs->fetchAll() as &$obj) {
-                $obj['data'] = $obj['DATE_CREATE']->format('d.m.Y');
-                $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp()
-                    ? ($obj['DATE_CREATE']->getTimestamp() < $objTimeLast->getTimestamp() ? $obj['DATE_CREATE']->format('d.m.Y') : 'вчера')
-                    : 'сегодня';
-                $obj['letter'] = $obj['USER_ID'] > 0
-                    ? mb_substr($obj['USERS_LAST_NAME'], 0, 1).mb_substr($obj['USERS_NAME'], 0, 1)
-                    : mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
-                $obj['NAME'] = $obj['USER_ID'] > 0 ? $obj['USERS_LAST_NAME'] . ' ' . $obj['USERS_NAME'] : $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
-                $obj['icon'] = $obj['USERS_AVATAR'];
-                $obj['author'] = ($userId > 0 && $userId == $obj['USER_ID']) || $isAdmin;
-                if ($obj['COMMENT_ID'] > 0) {
-                    $result[$obj['COMMENT_ID']]['sub'][] = $obj;
-                } else {
-                    $result[$obj['ID']] = $obj;
-                }
-            }
-        }
-        return [
-            'object' => $result,
-            'userId' => $userId,
-            'isAdmin' => $isAdmin,
-            'isShow' => true,
-        ];
+        return self::getListComment();
     }
 
     public function delCommentAction()
@@ -291,5 +147,89 @@ class ResponseGkComments extends Controller
             }
         }*/
         return [];
+    }
+
+    public static function getListComment()
+    {
+        $params = [
+            'count_total' => 1,
+            'order' => ['DATE_CREATE' => 'ASC'],
+            'select' => ['*',
+                'USERS_AVATAR' => 'USERS.PERSONAL_PHOTO',
+                'USERS_NAME' => 'USERS.NAME',
+                'USERS_LAST_NAME' => 'USERS.LAST_NAME',
+                'USERS_EMAIL' => 'USERS.EMAIL'
+            ],
+            'runtime' => [
+                (new \Bitrix\Main\ORM\Fields\Relations\Reference(
+                    'USERS',
+                    \Bitrix\Main\UserTable::class,
+                    \Bitrix\Main\ORM\Query\Join::on('this.USER_ID', 'ref.ID')
+                ))
+            ],
+        ];
+        if (self::$pages) {
+            $params['offset'] = (self::$pages > 1 ? (self::$pages-1)*self::$setCount : 0);
+        }
+        if (self::$path === '/' || self::$path === '') {
+            // мы на главной
+            if (self::$setHome === 'Y') {
+                //$params['filter']['COMMENT_ID'] = 0;
+                $params['limit'] = self::$setCount;
+            } else {
+                return [
+                    'object' => [],
+                    'userId' => self::$userId,
+                    'isAdmin' => self::$isAdmin,
+                    'isShow' => false,
+                ];
+            }
+        } else {
+            //$params['filter']['=PATH'] = $path;
+        }
+        if (self::$setChpu !== 'Y') {
+            $params['filter']['=QUERY'] = self::$query;
+            $params['filter']['=PATH'] = self::$path;
+        } else {
+            $params['filter']['=PATH'] = self::$path;
+        }
+        $objs = GkCommentsTable::getList($params);
+        $coont = $objs->getCount();
+        if ($coont > self::$setCount) {
+            $page = ceil($coont / self::$setCount);
+        }
+        $result = [];
+        $objTime = $objTimeLast = new DateTime();
+        $objTime->add('-1 days');
+        $objTimeLast->add('-2 days');
+        if ($objs->getCount() > 0) {
+            foreach ($objs->fetchAll() as &$obj) {
+                $obj['data'] = $obj['DATE_CREATE']->format('d.m.Y');
+                $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp()
+                    ? ($obj['DATE_CREATE']->getTimestamp() < $objTimeLast->getTimestamp() ? $obj['DATE_CREATE']->format('d.m.Y') : 'вчера')
+                    : 'сегодня';
+                $obj['letter'] = $obj['USER_ID'] > 0
+                    ? mb_substr($obj['USERS_LAST_NAME'], 0, 1).mb_substr($obj['USERS_NAME'], 0, 1)
+                    : mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
+                $obj['NAME'] = $obj['USER_ID'] > 0 ? $obj['USERS_LAST_NAME'] . ' ' . $obj['USERS_NAME'] : $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
+                $obj['icon'] = $obj['USERS_AVATAR'];
+                $obj['author'] = (self::$userId > 0 && self::$userId == $obj['USER_ID']) || self::$isAdmin;
+                if ($obj['COMMENT_ID'] > 0) {
+                    $result[$obj['COMMENT_ID']]['sub'][] = $obj;
+                } else {
+                    $result[$obj['ID']] = $obj;
+                }
+            }
+        }
+        return [
+            'object' => $result,
+            'userId' => self::$userId,
+            'isAdmin' => self::$isAdmin,
+            'isShow' => true,
+            'page' => (int)$page,
+            'pages' => (int)self::$pages,
+            'count' => (int)$coont,
+            'limit' => (int)self::$setCount
+        ];
     }
 }
