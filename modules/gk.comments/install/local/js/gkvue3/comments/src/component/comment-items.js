@@ -171,7 +171,7 @@ export const CommentItems = {
                 </transition>
             </template>
             <template v-else>
-                <div>
+               <div>
                     <div class="comment-header" v-if="isShow">
                         <div class="comment-button-body mb-3" v-if="isUser">
                             <div class="title">{{name}}</div>
@@ -255,6 +255,6 @@ export const CommentItems = {
                         </template>
                     </div>
                 </div>
-            </template>
+            </template>           
     `
 }

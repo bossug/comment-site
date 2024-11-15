@@ -110,6 +110,7 @@ export const Items = {
                     </i>
                 </div>
             </div>
+            
         </transition>
     `
 }

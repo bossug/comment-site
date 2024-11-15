@@ -8,8 +8,8 @@ return [
 	'css' => 'dist/comments.bundle.css',
 	'js' => 'dist/comments.bundle.js',
 	'rel' => [
-		'main.core',
+		'main.polyfill.core',
 		'ui.vue3',
 	],
-	'skip_core' => false,
+	'skip_core' => true,
 ];

@@ -13,6 +13,7 @@
     use Bitrix\Main\ORM\Fields\IntegerField;
     use Bitrix\Main\ORM\Fields\StringField;
     use Bitrix\Main\ORM\Fields\BooleanField;
+    use Bitrix\Main\ORM\Fields\TextField;
     use Bitrix\Main\SystemException;
     use Bitrix\Main\Type\DateTime;
 
@@ -79,7 +80,7 @@
                 ]),
 
                 /** Текст сообщения */
-                new StringField('COMMENT', ['title' => 'Текст сообщения']),
+                new TextField('COMMENT', ['title' => 'Текст сообщения']),
                 new StringField('PATH'),
                 new StringField('QUERY'),
 
