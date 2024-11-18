@@ -98,6 +98,12 @@ export const CommentItems = {
         buttonSendComment(data)
         {
             const {arResult} = this;
+
+            // если пользователь в компоненте хочет учитывать какие то параметры, они будут содержаться в acceptedUrlParameters
+            if( (this.$Bitrix.Application.instance.options.acceptedUrlParameters).length>0 ) {
+                data.path = this.filteredUrlQuery;
+            }
+
             runAction('gk:comments.CC.ResponseGkComments.setComment',{
                 data: {
                     NAME: data.NAME,
