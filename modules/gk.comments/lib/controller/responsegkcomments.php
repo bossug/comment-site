@@ -100,12 +100,13 @@ class ResponseGkComments extends Controller
         self::$pages = $request->getPost('page');
         $response = GkCommentsTable::update($list['id'], ['COMMENT' => $list['text']]);
 
-        $isChpu = !empty($request['acceptedUrlParameters']);
+
         if ($response->isSuccess()) {
-            return self::getListComment($isChpu);
+            return self::getListComment();
         }
         return [];
     }
+
     public function getCommentAction()
     {
         self::$setChpu = \Bitrix\Main\Config\Option::get('gk.comments','setChpu');
@@ -119,8 +120,7 @@ class ResponseGkComments extends Controller
         self::$query = $request->getPost('query');
         self::$pages = $request->getPost('page');
 
-        $isChpu = !empty($request['acceptedUrlParameters']);
-        return self::getListComment($isChpu);
+        return self::getListComment();
     }
 
     public function delCommentAction()
@@ -154,7 +154,7 @@ class ResponseGkComments extends Controller
         return [];
     }
 
-    public static function getListComment($isChpu = false)
+    public static function getListComment()
     {
         $params = [
             'count_total' => 1,
@@ -227,6 +227,8 @@ class ResponseGkComments extends Controller
             }
         }
 
+        $request = \Bitrix\Main\Context::getCurrent()->getRequest()->getValues();
+        $isChpu = !empty($request['acceptedUrlParameters']);
 
         if( $isChpu ) {
 
@@ -254,9 +256,6 @@ class ResponseGkComments extends Controller
             'limit' => (int)self::$setCount
         ];
     }
-
-
-
 
     public static function filterQueryStringByKeys(string $query, string $keys): string
     {

@@ -108,7 +108,7 @@
     };
 
     var CommentFormEdit = {
-      props: ['subtext', 'id', 'path'],
+      props: ['subtext', 'id', 'path', 'query'],
       data: function data() {
         return {
           edittext: this.subtext
@@ -120,7 +120,7 @@
             text: this.edittext,
             id: id,
             path: this.path,
-            query: this.query
+            query: window.location.search
           });
         }
       },
@@ -275,6 +275,7 @@
         },
         buttonSendComment: function buttonSendComment(data) {
           var arResult = this.arResult;
+          data.acceptedUrlParameters = this.$Bitrix.Application.instance.options.acceptedUrlParameters;
           runAction('gk:comments.CC.ResponseGkComments.setComment', {
             data: {
               NAME: data.NAME,
@@ -284,7 +285,8 @@
               path: data.path,
               USER_ID: data.userId,
               comment_id: data.comment_id,
-              query: window.location.search
+              query: window.location.search,
+              acceptedUrlParameters: data.acceptedUrlParameters
             }
           }).then(function (comment) {
             $('.closeComments').trigger('click');
@@ -306,6 +308,7 @@
         },
         buttonEditComment: function buttonEditComment(data) {
           var arResult = this.arResult;
+          data.acceptedUrlParameters = this.$Bitrix.Application.instance.options.acceptedUrlParameters;
           runAction('gk:comments.CC.ResponseGkComments.editComment', {
             data: data
           }).then(function (comment) {

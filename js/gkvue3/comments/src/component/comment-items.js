@@ -109,6 +109,8 @@ export const CommentItems = {
         {
             const {arResult} = this;
 
+            data.acceptedUrlParameters = this.$Bitrix.Application.instance.options.acceptedUrlParameters;
+
             runAction('gk:comments.CC.ResponseGkComments.setComment',{
                 data: {
                     NAME: data.NAME,
@@ -119,6 +121,7 @@ export const CommentItems = {
                     USER_ID: data.userId,
                     comment_id: data.comment_id,
                     query: window.location.search,
+                    acceptedUrlParameters:data.acceptedUrlParameters
                 }
             }).then(function(comment){
                 $('.closeComments').trigger('click')
@@ -142,6 +145,9 @@ export const CommentItems = {
         buttonEditComment(data)
         {
             const {arResult} = this;
+
+            data.acceptedUrlParameters = this.$Bitrix.Application.instance.options.acceptedUrlParameters;
+
             runAction('gk:comments.CC.ResponseGkComments.editComment',{
                 data: data
             }).then(function(comment){

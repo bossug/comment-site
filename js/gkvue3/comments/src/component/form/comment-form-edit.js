@@ -1,6 +1,6 @@
 
 export const CommentFormEdit = {
-    props: ['subtext', 'id', 'path'],
+    props: ['subtext', 'id', 'path','query'],
     data()
     {
         return {
@@ -14,7 +14,7 @@ export const CommentFormEdit = {
                 text: this.edittext,
                 id: id,
                 path: this.path,
-                query: this.query
+                query: window.location.search
             })
         }
     },
