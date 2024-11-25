@@ -3,6 +3,7 @@
 namespace GK\COMMENTS\Controller;
 
 use Bitrix\Main\Application;
+use Bitrix\Main\Context;
 use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Engine\ActionFilter;
@@ -111,11 +112,14 @@ class ResponseGkComments extends Controller
         $request = Application::getInstance()->getContext()->getRequest();
         self::$userId = \Bitrix\Main\Engine\CurrentUser::get()->getId();
         self::$isAdmin = \Bitrix\Main\Engine\CurrentUser::get()->isAdmin();
+        // проверить ЧПУ или не ЧПУ по path и query
         self::$path = $request->getPost('path');
         self::$query = $request->getPost('query');
         self::$pages = $request->getPost('page');
 
-        return self::getListComment();
+        $isChpu = !empty($request['acceptedUrlParameters']);
+
+        return self::getListComment($isChpu);
     }
 
     public function delCommentAction()
@@ -149,7 +153,7 @@ class ResponseGkComments extends Controller
         return [];
     }
 
-    public static function getListComment()
+    public static function getListComment($isChpu = false)
     {
         $params = [
             'count_total' => 1,
@@ -221,6 +225,22 @@ class ResponseGkComments extends Controller
                 }
             }
         }
+
+
+        if($isChpu) {
+            $requestValues = \Bitrix\Main\Context::getCurrent()->getRequest()->getValues();
+            foreach ($result as $key => $value) {
+                $compare = self::compareQueryStrings(
+                    $requestValues['query'],
+                    $value['QUERY'],
+                    $requestValues['acceptedUrlParameters']
+                );
+                if( !$compare ) {
+                    unset($result[$key]);
+                }
+            }
+        }
+
         return [
             'object' => $result,
             'userId' => self::$userId,
@@ -231,5 +251,33 @@ class ResponseGkComments extends Controller
             'count' => (int)$coont,
             'limit' => (int)self::$setCount
         ];
+    }
+
+    public static function parseQueryString($queryString) {
+        parse_str(ltrim($queryString, '?'), $params);
+        return $params;
+    }
+
+    public static function compareQueryStrings($queryString1, $queryString2, $keys) {
+
+
+        $params1 = self::parseQueryString($queryString1);
+        $params2 = self::parseQueryString($queryString2);
+
+        $keysArray = explode(',', $keys);
+
+        // Проверяем совпадение значений для указанных ключей
+        foreach ($keysArray as $key) {
+            $key = trim($key);
+            if (isset($params1[$key], $params2[$key])) {
+                if ($params1[$key] !== $params2[$key]) {
+                    return false; // Если хотя бы одно значение не совпадает
+                }
+            } else {
+                return false; // Если какой-то из ключей отсутствует в строках
+            }
+        }
+
+        return true; // Если все ключи совпали
     }
 }

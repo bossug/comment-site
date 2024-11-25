@@ -81,6 +81,24 @@ export const CommentItems = {
                 text.length > 5
             );
         },
+        filteredUrlQuery() {
+            const acceptedParams = this.$Bitrix.Application.instance.options.acceptedUrlParameters
+                .split(',')
+                .map(param => param.trim()); // Удаляем пробелы вокруг каждого параметра
+
+            const url = new URL(window.location.href);
+            const params = new URLSearchParams(url.search);
+
+            // Убираем неразрешённые параметры
+            for (const key of params.keys()) {
+                if (!acceptedParams.includes(key)) {
+                    params.delete(key);
+                }
+            }
+
+            // Возвращаем итоговую строку URL
+            return url.pathname + (params.toString() ? '?' + params.toString() : '');
+        },
     },
     methods: {
         openCommentNotAuth()

@@ -183,6 +183,9 @@
       template: "\n        <transition :duration=\"{ enter: 500, leave: 500 }\" name=\"slide-fade\">\n            <div :class=\"{'child-item': child}\" class=\"comment-item\" :data-id=\"id\" v-if=\"show\">\n                <div class=\"header-top\">\n                    <div class=\"f-left\">\n                        <div class=\"f-circle\">\n                            <div class=\"letter\">{{letter}}</div>\n                        </div>\n                        <div class=\"f-content\">\n                            <div>{{name}}</div>\n                            <div v-if=\"(timedata=='')\">{{data}}</div>\n                            <div v-else>{{timedata}}</div>\n                        </div>\n                    </div>\n                </div>\n                <div class=\"text\">{{text}}</div>\n                <div v-if=\"comment\" class=\"subBlock\">\n                    <template v-if=\"!isuser\">\n                        <CommentFormNoauth \n                            :showComment=\"comment\" \n                            :path=\"path\" \n                            :isFullName=\"isFullName\" \n                            :child=\"true\" \n                            :id=\"id\"\n                            :userData=\"userData\"\n                            @open-comment-not-auth=\"openCommentNotAuth\" \n                            @close-comment-auth=\"closeCommentAuth\" \n                            @button-send-comment=\"buttonSendComment\"\n                            @full-name=\"fullName\"\n                        />\n                    </template>\n                    <template v-else>\n                        <CommentFormAuth\n                            :showComment=\"comment\" \n                            :path=\"path\" \n                            :child=\"true\" \n                            :id=\"id\"\n                            @open-comment-auth=\"openCommentAuth\" \n                            @close-comment=\"closeComment\" \n                            @button-send-comment=\"buttonSendComment\"\n                        />\n                    </template>\n                </div>\n                <div v-if=\"commentEdit\" class=\"subBlock\">\n                    <CommentFormEdit :subtext=\"text\" :id=\"id\" :path=\"path\" @button-edit-comment=\"buttonEditComment\"/>\n                </div>\n                <div class=\"socnet-button\">\n                    <i v-if=\"comment\" @click=\"comment = !comment\">\n                      <IconClose/>\n                    </i>\n                    <i :title=\"$Bitrix.Loc.getMessage('TITLE_COMMENT')\" \n                        @click=\"$emit('messageCallback', 'recomment', id)\" \n                        @click=\"comment = !comment\" v-if=\"(!comment && !child && fullName != name)\">\n                      <IconCommenting/>\n                    </i>\n                    <i :title=\"$Bitrix.Loc.getMessage('TITLE_EDIT')\" \n                        @click=\"commentEdit = !commentEdit\" \n                        @click=\"$emit('messageCallback', 'edit', id)\" v-if=\"(isauthor == true && !child || fullName == name)\">\n                      <IconEdit/>\n                    </i>\n                    <i :title=\"$Bitrix.Loc.getMessage('TITLE_DELETE')\" \n                        @click=\"$emit('messageCallback', 'delete', id)\" \n                        @click=\"show = !show\" v-if=\"(isauthor == true || fullName == name)\">\n                      <IconDelete/>\n                    </i>\n                </div>\n            </div>\n        </transition>\n    "
     };
 
+    function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
+    function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+    function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
     var runAction = BX.ajax.runAction;
     var CommentItems = {
       components: {
@@ -250,6 +253,33 @@
             EMAIL = this.EMAIL,
             text = this.text;
           return NAME.length > 4 && LAST_NAME.length > 4 && /(.+)@(.+){2,}.(.+){2,}/.test(EMAIL) && text.length > 5;
+        },
+        filteredUrlQuery: function filteredUrlQuery() {
+          var acceptedParams = this.$Bitrix.Application.instance.options.acceptedUrlParameters.split(',').map(function (param) {
+            return param.trim();
+          }); // Удаляем пробелы вокруг каждого параметра
+
+          var url = new URL(window.location.href);
+          var params = new URLSearchParams(url.search);
+
+          // Убираем неразрешённые параметры
+          var _iterator = _createForOfIteratorHelper(params.keys()),
+            _step;
+          try {
+            for (_iterator.s(); !(_step = _iterator.n()).done;) {
+              var key = _step.value;
+              if (!acceptedParams.includes(key)) {
+                params["delete"](key);
+              }
+            }
+
+            // Возвращаем итоговую строку URL
+          } catch (err) {
+            _iterator.e(err);
+          } finally {
+            _iterator.f();
+          }
+          return url.pathname + (params.toString() ? '?' + params.toString() : '');
         }
       },
       methods: {
@@ -264,6 +294,11 @@
         },
         buttonSendComment: function buttonSendComment(data) {
           var arResult = this.arResult;
+
+          // если пользователь в компоненте хочет учитывать какие то параметры, они будут содержаться в acceptedUrlParameters
+          if (this.$Bitrix.Application.instance.options.acceptedUrlParameters.length > 0) {
+            data.path = this.filteredUrlQuery;
+          }
           runAction('gk:comments.CC.ResponseGkComments.setComment', {
             data: {
               NAME: data.NAME,
@@ -333,6 +368,7 @@
     var _application = /*#__PURE__*/new WeakMap();
     var Comments = /*#__PURE__*/function () {
       function Comments(rootNode) {
+        var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
         babelHelpers.classCallCheck(this, Comments);
         _classPrivateFieldInitSpec(this, _application, {
           writable: true,
@@ -342,6 +378,7 @@
           isVisible: false
         }));
         this.rootNode = document.querySelector(rootNode);
+        this.options = options;
       }
       babelHelpers.createClass(Comments, [{
         key: "start",
@@ -387,7 +424,7 @@
             beforeCreate: function beforeCreate() {
               this.$bitrix.Application.set(context);
             },
-            template: "\n\t\t\t\t<CommentItems class=\"comments-wrapper\" :class=\"{ 'is-visible': state.isVisible }\"/>\n\t\t\t"
+            template: "\n\t\t\t\t<CommentItems\n\t\t\t\t \tclass=\"comments-wrapper\"\n\t\t\t\t \t:class=\"{ 'is-visible': state.isVisible }\"/>\n\t\t\t"
           }));
           babelHelpers.classPrivateFieldGet(this, _application).mount(this.rootNode);
         }

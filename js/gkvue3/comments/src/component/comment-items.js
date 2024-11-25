@@ -1,21 +1,26 @@
+import {Dom, Loc} from 'main.core';
 import {Items} from './items'
 import {CommentFormNoauth} from "./form/comment-form-noauth";
 import {CommentFormAuth} from "./form/comment-form-auth";
-import {IconCommenting, IconClose, CustomPreloader, ArrowLeft, ArrowRight} from "./icons/icon-complete";
+import {IconCommenting, IconClose, CustomPreloader} from "./icons/icon-complete";
 import {reactive} from "ui.vue3";
-import './comment-items.css';
 const {runAction} = BX.ajax;
 export const CommentItems = {
     components:
-    {
-        Items,
-        CommentFormNoauth,
-        CommentFormAuth,
-        IconCommenting,
-        CustomPreloader,
-        IconClose,
-        ArrowRight,
-        ArrowLeft
+        {
+            Items,
+            CommentFormNoauth,
+            CommentFormAuth,
+            IconCommenting,
+            CustomPreloader,
+            IconClose
+        },
+    props: {
+        acceptedUrlParameters: {
+            type: String,
+            required: false,
+            default: '',
+        },
     },
     data()
     {
@@ -24,6 +29,7 @@ export const CommentItems = {
         const arResult = reactive({});
         arResult.path = url.pathname;
         arResult.query = url.search;
+        arResult.acceptedUrlParameters = this.acceptedUrlParameters
 
         const loading = reactive({
             isLoading: true
@@ -32,39 +38,15 @@ export const CommentItems = {
         runAction('gk:comments.CC.ResponseGkComments.getComment',{
             data: {
                 path: arResult.path,
-                query: arResult.query
+                query: arResult.query,
+                acceptedUrlParameters: this.acceptedUrlParameters,
             }
         }).then(function(response){
-            if (response.data.page > 1) {
-                runAction('gk:comments.CC.ResponseGkComments.getComment',{
-                    data: {
-                        path: arResult.path,
-                        query: arResult.query,
-                        page: response.data.page
-                    }
-                }).then(function(response) {
-                    //console.log(response.data)
-                    arResult.arrayComment = response.data.object;
-                    arResult.arrayCount = Object.keys(response.data.object);
-                    arResult.Counts = response.data.counts;
-                    arResult.Page = response.data.page;
-                    arResult.Pages = response.data.pages;
-                    arResult.userId = response.data.userId
-                    arResult.isAdmin = response.data.isAdmin
-                    arResult.isShow = response.data.isShow;
-                    arResult.Limit = response.data.limit;
-                })
-            } else {
-                arResult.arrayComment = response.data.object;
-                arResult.arrayCount = Object.keys(response.data.object);
-                arResult.Counts = response.data.counts;
-                arResult.Page = response.data.page;
-                arResult.Pages = response.data.pages;
-                arResult.userId = response.data.userId
-                arResult.isAdmin = response.data.isAdmin
-                arResult.isShow = response.data.isShow;
-                arResult.Limit = response.data.limit;
-            }
+            //console.log(response.data)
+            arResult.arrayComment = response.data.object;
+            arResult.userId = response.data.userId
+            arResult.isAdmin = response.data.isAdmin
+            arResult.isShow = response.data.isShow
 
             // Устанавливаем isLoading в false, как только данные полностью загружены и обработаны, с небольшим тиймаутом
             setTimeout(function() {
@@ -85,8 +67,7 @@ export const CommentItems = {
             fullName: '',
             userData: userData,
             loading,
-            page: 0,
-            pages: 1,
+            acceptedUrlParameters: ""
         }
     },
     computed: {
@@ -127,6 +108,7 @@ export const CommentItems = {
         buttonSendComment(data)
         {
             const {arResult} = this;
+
             runAction('gk:comments.CC.ResponseGkComments.setComment',{
                 data: {
                     NAME: data.NAME,
@@ -136,41 +118,13 @@ export const CommentItems = {
                     path: data.path,
                     USER_ID: data.userId,
                     comment_id: data.comment_id,
-                    page: this.arResult.Pages
+                    query: window.location.search,
                 }
             }).then(function(comment){
                 $('.closeComments').trigger('click')
-                if (comment.data.page !== comment.data.pages) {
-                    runAction('gk:comments.CC.ResponseGkComments.getComment',{
-                        data: {
-                            path: arResult.path,
-                            query: arResult.query,
-                            page: comment.data.page
-                        }
-                    }).then(function(comment){
-                        arResult.arrayComment = comment.data.object
-                        arResult.userId = comment.data.userId
-                        arResult.isAdmin = comment.data.isAdmin
-                        arResult.arrayCount = Object.keys(comment.data.object);
-                        arResult.Counts = comment.data.counts;
-                        arResult.Page = comment.data.page;
-                        arResult.Pages = comment.data.pages;
-                        arResult.userId = comment.data.userId
-                        arResult.isAdmin = comment.data.isAdmin
-                        arResult.isShow = comment.data.isShow
-                    })
-                } else {
-                    arResult.arrayComment = comment.data.object
-                    arResult.userId = comment.data.userId
-                    arResult.isAdmin = comment.data.isAdmin
-                    arResult.arrayCount = Object.keys(comment.data.object);
-                    arResult.Counts = comment.data.counts;
-                    arResult.Page = comment.data.page;
-                    arResult.Pages = comment.data.pages;
-                    arResult.userId = comment.data.userId
-                    arResult.isAdmin = comment.data.isAdmin
-                    arResult.isShow = comment.data.isShow
-                }
+                arResult.arrayComment = comment.data.object
+                arResult.userId = comment.data.userId
+                arResult.isAdmin = comment.data.isAdmin
             });
         },
         buttonSendSubComment(data)
@@ -180,77 +134,21 @@ export const CommentItems = {
                 data: data
             }).then(function(comment){
                 $('.fa-close').trigger('click')
-                if (comment.data.page !== comment.data.pages) {
-                    runAction('gk:comments.CC.ResponseGkComments.getComment',{
-                        data: {
-                            path: arResult.path,
-                            query: arResult.query,
-                            page: comment.data.page
-                        }
-                    }).then(function(comment){
-                        arResult.arrayComment = comment.data.object
-                        arResult.userId = comment.data.userId
-                        arResult.isAdmin = comment.data.isAdmin
-                        arResult.arrayCount = Object.keys(comment.data.object);
-                        arResult.Counts = comment.data.counts;
-                        arResult.Page = comment.data.page;
-                        arResult.Pages = comment.data.pages;
-                        arResult.userId = comment.data.userId
-                        arResult.isAdmin = comment.data.isAdmin
-                        arResult.isShow = comment.data.isShow
-                    })
-                } else {
-                    arResult.arrayComment = comment.data.object
-                    arResult.userId = comment.data.userId
-                    arResult.isAdmin = comment.data.isAdmin
-                    arResult.arrayCount = Object.keys(comment.data.object);
-                    arResult.Counts = comment.data.counts;
-                    arResult.Page = comment.data.page;
-                    arResult.Pages = comment.data.pages;
-                    arResult.userId = comment.data.userId
-                    arResult.isAdmin = comment.data.isAdmin
-                    arResult.isShow = comment.data.isShow
-                }
+                arResult.arrayComment = comment.data.object;
+                arResult.userId = comment.data.userId
+                arResult.isAdmin = comment.data.isAdmin
             });
         },
         buttonEditComment(data)
         {
             const {arResult} = this;
             runAction('gk:comments.CC.ResponseGkComments.editComment',{
-                data: data,
+                data: data
             }).then(function(comment){
                 $('.fa-close').trigger('click')
-                if (comment.data.page !== comment.data.pages) {
-                    runAction('gk:comments.CC.ResponseGkComments.getComment',{
-                        data: {
-                            path: arResult.path,
-                            query: arResult.query,
-                            page: comment.data.page
-                        }
-                    }).then(function(comment){
-                        arResult.arrayComment = comment.data.object
-                        arResult.userId = comment.data.userId
-                        arResult.isAdmin = comment.data.isAdmin
-                        arResult.arrayCount = Object.keys(comment.data.object);
-                        arResult.Counts = comment.data.counts;
-                        arResult.Page = comment.data.page;
-                        arResult.Pages = comment.data.pages;
-                        arResult.userId = comment.data.userId
-                        arResult.isAdmin = comment.data.isAdmin
-                        arResult.isShow = comment.data.isShow
-                    })
-                } else {
-                    arResult.arrayComment = comment.data.object
-                    arResult.userId = comment.data.userId
-                    arResult.isAdmin = comment.data.isAdmin
-                    arResult.arrayCount = Object.keys(comment.data.object);
-                    arResult.Counts = comment.data.counts;
-                    arResult.Page = comment.data.page;
-                    arResult.Pages = comment.data.pages;
-                    arResult.userId = comment.data.userId
-                    arResult.isAdmin = comment.data.isAdmin
-                    arResult.isShow = comment.data.isShow
-                }
+                arResult.arrayComment = comment.data.object;
+                arResult.userId = comment.data.userId
+                arResult.isAdmin = comment.data.isAdmin
             });
         },
         ParentCall(fmethod, id)
@@ -269,55 +167,12 @@ export const CommentItems = {
                             element.classList.add('delete')
                         }
                     })
-                    if (comment.data.page !== comment.data.pages) {
-                        runAction('gk:comments.CC.ResponseGkComments.getComment',{
-                            data: {
-                                path: arResult.path,
-                                query: arResult.query,
-                                page: comment.data.page
-                            }
-                        }).then(function(comment){
-                            arResult.arrayComment = comment.data.object
-                            arResult.userId = comment.data.userId
-                            arResult.isAdmin = comment.data.isAdmin
-                            arResult.arrayCount = Object.keys(comment.data.object);
-                            arResult.Counts = comment.data.counts;
-                            arResult.Page = comment.data.page;
-                            arResult.Pages = comment.data.pages;
-                            arResult.userId = comment.data.userId
-                            arResult.isAdmin = comment.data.isAdmin
-                            arResult.isShow = comment.data.isShow
-                        })
-                    }
                 });
             }
-        },
-        getPagination(event)
-        {
-            const { arResult } = this;
-            if (event === 'next') {
-                this.page = arResult.Pages += 1;
-            } else {
-                this.page = arResult.Pages -= 1;
+            if (fmethod === 'edit') {
+
             }
-            runAction('gk:comments.CC.ResponseGkComments.getComment',{
-                data: {
-                    path: arResult.path,
-                    query: arResult.query,
-                    page: this.page
-                }
-            }).then(function(response){
-                arResult.arrayComment = response.data.object;
-                arResult.arrayCount = Object.keys(response.data.object);
-                arResult.Counts = response.data.counts;
-                arResult.Page = response.data.page;
-                arResult.Pages = response.data.pages;
-                arResult.userId = response.data.userId
-                arResult.isAdmin = response.data.isAdmin
-                arResult.isShow = response.data.isShow
-                return arResult;
-            })
-        }
+        },
     },
     template: `
            <template v-if="loading.isLoading">
@@ -346,6 +201,7 @@ export const CommentItems = {
                             </div>
                             <div class="ui-form form-body" v-if="showComment">
                                 <CommentFormAuth
+                                    :currentQueryParams: currentQueryParams
                                     :showComment="showComment" 
                                     :path="path" 
                                     @open-comment-auth="openCommentAuth" 
@@ -356,6 +212,7 @@ export const CommentItems = {
                         </div>
                         <div class="comment-button-body mb-3" v-else>
                             <CommentFormNoauth 
+                                :currentQueryParams: currentQueryParams
                                 :showComment="showComment" 
                                 :path="path" 
                                 :isFullName="isFullName" 
@@ -410,20 +267,6 @@ export const CommentItems = {
                                     @message-callback="ParentCall"/>
                             </template>
                         </template>
-                        <ul class="ui-pagination" v-if="(arResult.Page > 1)">
-                            <li v-if="(arResult.Pages > 1)" 
-                                class="ui-btn ui-btn-link ui-btn-icon-arrow-back" 
-                                @click="getPagination('parent')"
-                            >
-                                <ArrowLeft/>
-                            </li>
-                            <li v-if="(arResult.arrayCount.length > arResult.Limit-1)" 
-                                class="ui-btn ui-btn-link ui-btn-icon-arrow-next" 
-                                @click="getPagination('next')"
-                            >
-                                <ArrowRight/>
-                            </li>
-                        </ul>
                     </div>
                 </div>
             </template>           

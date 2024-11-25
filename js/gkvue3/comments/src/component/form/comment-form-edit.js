@@ -14,6 +14,7 @@ export const CommentFormEdit = {
                 text: this.edittext,
                 id: id,
                 path: this.path,
+                query: this.query
             })
         }
     },
