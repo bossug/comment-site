@@ -99,8 +99,10 @@ class ResponseGkComments extends Controller
         self::$query = $list['query'];
         self::$pages = $request->getPost('page');
         $response = GkCommentsTable::update($list['id'], ['COMMENT' => $list['text']]);
+
+        $isChpu = !empty($request['acceptedUrlParameters']);
         if ($response->isSuccess()) {
-            return self::getListComment();
+            return self::getListComment($isChpu);
         }
         return [];
     }
@@ -118,7 +120,6 @@ class ResponseGkComments extends Controller
         self::$pages = $request->getPost('page');
 
         $isChpu = !empty($request['acceptedUrlParameters']);
-
         return self::getListComment($isChpu);
     }
 
@@ -227,18 +228,19 @@ class ResponseGkComments extends Controller
         }
 
 
-        if($isChpu) {
+        if( $isChpu ) {
+
             $requestValues = \Bitrix\Main\Context::getCurrent()->getRequest()->getValues();
+            $currentQuery = $requestValues['query']; // текущая страница и ее query
+            $filteredCurrentQuery = self::filterQueryStringByKeys($currentQuery, $requestValues['acceptedUrlParameters']);
+
             foreach ($result as $key => $value) {
-                $compare = self::compareQueryStrings(
-                    $requestValues['query'],
-                    $value['QUERY'],
-                    $requestValues['acceptedUrlParameters']
-                );
-                if( !$compare ) {
+                $filteredValueQuery = self::filterQueryStringByKeys($value['QUERY'], $requestValues['acceptedUrlParameters']);
+                if( $filteredValueQuery !== $filteredCurrentQuery ) {
                     unset($result[$key]);
                 }
             }
+
         }
 
         return [
@@ -253,31 +255,30 @@ class ResponseGkComments extends Controller
         ];
     }
 
-    public static function parseQueryString($queryString) {
-        parse_str(ltrim($queryString, '?'), $params);
-        return $params;
+
+
+
+    public static function filterQueryStringByKeys(string $query, string $keys): string
+    {
+        // Убираем знак "?" в начале строки, если он есть
+        $query = ltrim($query, '?');
+
+        // Преобразуем строку ключей в массив
+        $keysArray = array_map('trim', explode(',', $keys));
+
+        // Парсим параметры из строки
+        parse_str($query, $params);
+
+        // Оставляем только параметры, которые есть в $keys
+        $filteredParams = array_intersect_key($params, array_flip($keysArray));
+
+        // Формируем новую строку с параметрами
+        return http_build_query($filteredParams);
     }
 
-    public static function compareQueryStrings($queryString1, $queryString2, $keys) {
 
 
-        $params1 = self::parseQueryString($queryString1);
-        $params2 = self::parseQueryString($queryString2);
 
-        $keysArray = explode(',', $keys);
 
-        // Проверяем совпадение значений для указанных ключей
-        foreach ($keysArray as $key) {
-            $key = trim($key);
-            if (isset($params1[$key], $params2[$key])) {
-                if ($params1[$key] !== $params2[$key]) {
-                    return false; // Если хотя бы одно значение не совпадает
-                }
-            } else {
-                return false; // Если какой-то из ключей отсутствует в строках
-            }
-        }
 
-        return true; // Если все ключи совпали
-    }
 }
