@@ -40,6 +40,7 @@ export class Comments {
 			},
 			template: `
 				<CommentItems
+					:acceptedUrlParameters="this.$Bitrix.Application.instance.options.acceptedUrlParameters"
 				 	class="comments-wrapper"
 				 	:class="{ 'is-visible': state.isVisible }"/>
 			`,
