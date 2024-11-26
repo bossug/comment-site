@@ -3,6 +3,7 @@
 namespace GK\COMMENTS\Controller;
 
 use Bitrix\Main\Application;
+use Bitrix\Main\Context;
 use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Engine\ActionFilter;
@@ -98,11 +99,14 @@ class ResponseGkComments extends Controller
         self::$query = $list['query'];
         self::$pages = $request->getPost('page');
         $response = GkCommentsTable::update($list['id'], ['COMMENT' => $list['text']]);
+
+
         if ($response->isSuccess()) {
             return self::getListComment();
         }
         return [];
     }
+
     public function getCommentAction()
     {
         self::$setChpu = \Bitrix\Main\Config\Option::get('gk.comments','setChpu');
@@ -111,6 +115,7 @@ class ResponseGkComments extends Controller
         $request = Application::getInstance()->getContext()->getRequest();
         self::$userId = \Bitrix\Main\Engine\CurrentUser::get()->getId();
         self::$isAdmin = \Bitrix\Main\Engine\CurrentUser::get()->isAdmin();
+        // проверить ЧПУ или не ЧПУ по path и query
         self::$path = $request->getPost('path');
         self::$query = $request->getPost('query');
         self::$pages = $request->getPost('page');
@@ -221,6 +226,23 @@ class ResponseGkComments extends Controller
                 }
             }
         }
+
+        $request = \Bitrix\Main\Context::getCurrent()->getRequest()->getValues();
+        $ifAcceptedUrlParameters = !empty($request['acceptedUrlParameters']);
+        if( $ifAcceptedUrlParameters ) {
+            $requestValues = \Bitrix\Main\Context::getCurrent()->getRequest()->getValues();
+            $currentQuery = $requestValues['query']; // текущая страница и ее query
+            $filteredCurrentQuery = self::filterQueryStringByKeys($currentQuery, $requestValues['acceptedUrlParameters']);
+
+            foreach ($result as $key => $value) {
+                $filteredValueQuery = self::filterQueryStringByKeys($value['QUERY'], $requestValues['acceptedUrlParameters']);
+                if( $filteredValueQuery !== $filteredCurrentQuery ) {
+                    unset($result[$key]);
+                }
+            }
+
+        }
+
         return [
             'object' => $result,
             'userId' => self::$userId,
@@ -232,4 +254,28 @@ class ResponseGkComments extends Controller
             'limit' => (int)self::$setCount
         ];
     }
+
+    public static function filterQueryStringByKeys(string $query, string $keys): string
+    {
+        // Убираем знак "?" в начале строки, если он есть
+        $query = ltrim($query, '?');
+
+        // Преобразуем строку ключей в массив
+        $keysArray = array_map('trim', explode(',', $keys));
+
+        // Парсим параметры из строки
+        parse_str($query, $params);
+
+        // Оставляем только параметры, которые есть в $keys
+        $filteredParams = array_intersect_key($params, array_flip($keysArray));
+
+        // Формируем новую строку с параметрами
+        return http_build_query($filteredParams);
+    }
+
+
+
+
+
+
 }

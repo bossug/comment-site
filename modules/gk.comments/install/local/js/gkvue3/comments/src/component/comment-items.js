@@ -7,13 +7,20 @@ import {reactive} from "ui.vue3";
 const {runAction} = BX.ajax;
 export const CommentItems = {
     components:
-    {
-        Items,
-        CommentFormNoauth,
-        CommentFormAuth,
-        IconCommenting,
-        CustomPreloader,
-        IconClose
+        {
+            Items,
+            CommentFormNoauth,
+            CommentFormAuth,
+            IconCommenting,
+            CustomPreloader,
+            IconClose
+        },
+    props: {
+        acceptedUrlParameters: {
+            type: String,
+            required: false,
+            default: '',
+        },
     },
     data()
     {
@@ -22,6 +29,7 @@ export const CommentItems = {
         const arResult = reactive({});
         arResult.path = url.pathname;
         arResult.query = url.search;
+        arResult.acceptedUrlParameters = this.acceptedUrlParameters
 
         const loading = reactive({
             isLoading: true
@@ -30,7 +38,8 @@ export const CommentItems = {
         runAction('gk:comments.CC.ResponseGkComments.getComment',{
             data: {
                 path: arResult.path,
-                query: arResult.query
+                query: arResult.query,
+                acceptedUrlParameters: this.acceptedUrlParameters,
             }
         }).then(function(response){
             //console.log(response.data)
@@ -57,7 +66,8 @@ export const CommentItems = {
             isFullName: false,
             fullName: '',
             userData: userData,
-            loading
+            loading,
+            acceptedUrlParameters: ""
         }
     },
     computed: {
@@ -98,6 +108,9 @@ export const CommentItems = {
         buttonSendComment(data)
         {
             const {arResult} = this;
+
+            data.acceptedUrlParameters = this.$Bitrix.Application.instance.options.acceptedUrlParameters;
+
             runAction('gk:comments.CC.ResponseGkComments.setComment',{
                 data: {
                     NAME: data.NAME,
@@ -106,7 +119,9 @@ export const CommentItems = {
                     text: data.text,
                     path: data.path,
                     USER_ID: data.userId,
-                    comment_id: data.comment_id
+                    comment_id: data.comment_id,
+                    query: window.location.search,
+                    acceptedUrlParameters:data.acceptedUrlParameters
                 }
             }).then(function(comment){
                 $('.closeComments').trigger('click')
@@ -130,6 +145,9 @@ export const CommentItems = {
         buttonEditComment(data)
         {
             const {arResult} = this;
+
+            data.acceptedUrlParameters = this.$Bitrix.Application.instance.options.acceptedUrlParameters;
+
             runAction('gk:comments.CC.ResponseGkComments.editComment',{
                 data: data
             }).then(function(comment){
@@ -189,6 +207,7 @@ export const CommentItems = {
                             </div>
                             <div class="ui-form form-body" v-if="showComment">
                                 <CommentFormAuth
+                                    :currentQueryParams: currentQueryParams
                                     :showComment="showComment" 
                                     :path="path" 
                                     @open-comment-auth="openCommentAuth" 
@@ -199,6 +218,7 @@ export const CommentItems = {
                         </div>
                         <div class="comment-button-body mb-3" v-else>
                             <CommentFormNoauth 
+                                :currentQueryParams: currentQueryParams
                                 :showComment="showComment" 
                                 :path="path" 
                                 :isFullName="isFullName" 
