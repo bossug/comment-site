@@ -228,8 +228,8 @@ class ResponseGkComments extends Controller
         }
 
         $request = \Bitrix\Main\Context::getCurrent()->getRequest()->getValues();
-        $ifAcceptedUrlParameters = !empty($request['acceptedUrlParameters']);
-        if( $ifAcceptedUrlParameters ) {
+        $isAcceptedUrlParameters = !empty($request['acceptedUrlParameters']);
+        if( $isAcceptedUrlParameters ) {
             $requestValues = \Bitrix\Main\Context::getCurrent()->getRequest()->getValues();
             $currentQuery = $requestValues['query']; // текущая страница и ее query
             $filteredCurrentQuery = self::filterQueryStringByKeys($currentQuery, $requestValues['acceptedUrlParameters']);
