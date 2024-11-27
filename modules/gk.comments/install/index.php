@@ -144,25 +144,19 @@ class gk_comments extends CModule
 
     public function unInstallFiles()
     {
-        // Удаление файлов из административной панели
         DeleteDirFiles(
             Application::getDocumentRoot().'/local/modules/'.$this->MODULE_ID.'/install/admin/',
             Application::getDocumentRoot().'/bitrix/admin'
         );
-
-        // Удаление папки /local/components
-        $componentsPath = Application::getDocumentRoot().'/local/components';
-        if (Directory::isDirectoryExists($componentsPath)) {
-            Directory::deleteDirectory($componentsPath);
-        }
-
-        // Удаление папки /local/js
-        $jsPath = Application::getDocumentRoot().'/local/js';
-        if (Directory::isDirectoryExists($jsPath)) {
-            Directory::deleteDirectory($jsPath);
-        }
+        DeleteDirFiles(
+            Application::getDocumentRoot().'/local/modules/'.$this->MODULE_ID.'/install/local/components',
+            Application::getDocumentRoot().'/local/components'
+        );
+        DeleteDirFiles(
+            Application::getDocumentRoot().'/local/modules/'.$this->MODULE_ID.'/install/local/js',
+            Application::getDocumentRoot().'/local/js'
+        );
 
         return true;
     }
-
 }
