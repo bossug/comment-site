@@ -275,10 +275,4 @@ class ResponseGkComments extends Controller
     }
 
 
-    public static function getAllCommentsByPage($path) {
-
-    }
-
-
-
 }
