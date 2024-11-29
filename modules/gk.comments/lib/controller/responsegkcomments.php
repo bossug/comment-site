@@ -65,8 +65,12 @@ class ResponseGkComments extends Controller
         $list = $request->getPostList()->toArray();
         self::$pages = $request->getPost('page');
 
-        if(!empty($list['acceptedParameters'])) {
-            $some = "";
+        // если $list['acceptedUrlParameters'] не пуст, значит нужно учиывать эти параметры при создании комментария
+        if(!empty($list['acceptedUrlParameters'])) {
+            if(!empty($list['query'])) {
+                $filteredQuery = self::filterQueryStringByKeys($list['query'],$list['acceptedUrlParameters']);
+                $list['query'] = $filteredQuery;
+            }
         }
 
         $fields = [
