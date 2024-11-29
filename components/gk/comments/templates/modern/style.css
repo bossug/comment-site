@@ -152,6 +152,28 @@
     margin-right: 100px!important;
 }
 
-i {
-    margin: 10px;
+.socnet-button {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around; /* Увеличивает равномерное распределение */
+    column-gap: 40px; /* Увеличивает расстояние между иконками */
+    color: #555;
+    max-width: 50px;
 }
+
+.socnet-button i {
+    font-size: 32px; /* Увеличивает размер иконок в 2 раза */
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.socnet-button i svg {
+    height: 25px;
+    width: 25px;
+}
+
+.socnet-button i:hover {
+    color: #ff5722;
+    transform: scale(1.2); /* Добавляет небольшой эффект увеличения при наведении */
+    cursor: pointer;
+}
+

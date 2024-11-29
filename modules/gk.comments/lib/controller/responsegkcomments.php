@@ -4,6 +4,8 @@ namespace GK\COMMENTS\Controller;
 
 use Bitrix\Main\Application;
 use Bitrix\Main\Context;
+use Bitrix\Main\DB\SqlException;
+use Bitrix\Main\DB\SqlExpression;
 use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Engine\ActionFilter;
@@ -62,6 +64,10 @@ class ResponseGkComments extends Controller
         self::$query = $request->getPost('query');
         $list = $request->getPostList()->toArray();
         self::$pages = $request->getPost('page');
+
+        if(!empty($list['acceptedParameters'])) {
+            $some = "";
+        }
 
         $fields = [
             'COMMENT' => $list['text'],
@@ -156,6 +162,9 @@ class ResponseGkComments extends Controller
 
     public static function getListComment()
     {
+        $request = \Bitrix\Main\Context::getCurrent()->getRequest()->getValues();
+        $isAcceptedUrlParameters = !empty($request['acceptedUrlParameters']);
+
         $params = [
             'count_total' => 1,
             'order' => ['DATE_CREATE' => 'ASC'],
@@ -173,6 +182,7 @@ class ResponseGkComments extends Controller
                 ))
             ],
         ];
+
         if (self::$pages) {
             $params['offset'] = (self::$pages > 1 ? (self::$pages-1)*self::$setCount : 0);
         }
@@ -189,15 +199,18 @@ class ResponseGkComments extends Controller
                     'isShow' => false,
                 ];
             }
-        } else {
-            //$params['filter']['=PATH'] = $path;
         }
-        if (self::$setChpu !== 'Y') {
-            $params['filter']['=QUERY'] = self::$query;
+
+        if ( $isAcceptedUrlParameters ) {
+            // если пользователь задал параметры, которые нужно контролировать они будут в $request['acceptedUrlParameters']
+            $filteredQuery = self::filterQueryStringByKeys(self::$query, $request['acceptedUrlParameters']); // получим строку только с этими параметрами
+
+            $params['filter']['=QUERY'] = $filteredQuery;
             $params['filter']['=PATH'] = self::$path;
         } else {
             $params['filter']['=PATH'] = self::$path;
         }
+
         $objs = GkCommentsTable::getList($params);
         $coont = $objs->getCount();
         if ($coont > self::$setCount) {
@@ -225,22 +238,6 @@ class ResponseGkComments extends Controller
                     $result[$obj['ID']] = $obj;
                 }
             }
-        }
-
-        $request = \Bitrix\Main\Context::getCurrent()->getRequest()->getValues();
-        $isAcceptedUrlParameters = !empty($request['acceptedUrlParameters']);
-        if( $isAcceptedUrlParameters ) {
-            $requestValues = \Bitrix\Main\Context::getCurrent()->getRequest()->getValues();
-            $currentQuery = $requestValues['query']; // текущая страница и ее query
-            $filteredCurrentQuery = self::filterQueryStringByKeys($currentQuery, $requestValues['acceptedUrlParameters']);
-
-            foreach ($result as $key => $value) {
-                $filteredValueQuery = self::filterQueryStringByKeys($value['QUERY'], $requestValues['acceptedUrlParameters']);
-                if( $filteredValueQuery !== $filteredCurrentQuery ) {
-                    unset($result[$key]);
-                }
-            }
-
         }
 
         return [
@@ -274,7 +271,9 @@ class ResponseGkComments extends Controller
     }
 
 
+    public static function getAllCommentsByPage($path) {
 
+    }
 
 
 

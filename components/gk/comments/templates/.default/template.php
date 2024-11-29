@@ -7,6 +7,8 @@ CJSCore::Init(['fx','ls']);
 ?>
 <div id="application"></div>
 <script>
-    const comments = new BX.Comments('#application');
+    const comments = new BX.Comments('#application', {
+        acceptedUrlParameters: <?=\Bitrix\Main\Web\Json::encode($arParams['ACCEPTED_URL_PARAMETERS'])?>
+    });
     comments.start();
 </script>
