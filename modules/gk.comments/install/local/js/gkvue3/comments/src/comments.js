@@ -8,8 +8,9 @@ export class Comments {
 		isVisible: false,
 	});
 
-	constructor(rootNode) {
+	constructor(rootNode, options={}) {
 		this.rootNode = document.querySelector(rootNode);
+		this.options = options;
 	}
 
 	start() {
@@ -38,7 +39,10 @@ export class Comments {
 				this.$bitrix.Application.set(context);
 			},
 			template: `
-				<CommentItems class="comments-wrapper" :class="{ 'is-visible': state.isVisible }"/>
+				<CommentItems
+					:acceptedUrlParameters="this.$Bitrix.Application.instance.options.acceptedUrlParameters"
+				 	class="comments-wrapper"
+				 	:class="{ 'is-visible': state.isVisible }"/>
 			`,
 		});
 

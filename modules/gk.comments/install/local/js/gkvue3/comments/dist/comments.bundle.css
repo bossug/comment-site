@@ -139,3 +139,9 @@
     text-align: center;
     margin-top: 100px;
 }
+
+input[type='submit'] {
+    -webkit-box-sizing: content-box!important;
+            box-sizing: content-box!important;
+}
+

@@ -4,7 +4,10 @@ import {CommentFormEdit} from "./form/comment-form-edit";
 import {IconClose, IconEdit, IconDelete, IconCommenting} from "./icons/icon-complete";
 
 export const Items = {
-    props: ['name', 'letter', 'text', 'icon', 'data', 'timedata', 'elementId', 'id', 'isauthor', 'show', 'child', 'path', 'userid', 'isuser', 'isFullName', 'userData'],
+    props: [
+        'name', 'letter', 'text', 'icon', 'data', 'timedata',
+        'elementId', 'id', 'isauthor', 'show', 'child', 'path',
+        'userid', 'isuser', 'isFullName', 'userData', 'query'],
     components: {
         CommentFormNoauth,
         CommentFormAuth,
@@ -110,7 +113,6 @@ export const Items = {
                     </i>
                 </div>
             </div>
-            
         </transition>
     `
 }

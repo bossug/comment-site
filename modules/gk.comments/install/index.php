@@ -4,6 +4,7 @@
     use Bitrix\Main\Localization\Loc;
     use Bitrix\Main\ModuleManager;
     use Bitrix\Main\SystemException;
+    use Bitrix\Main\IO\Directory;
 
     Loc::loadMessages(__FILE__);
 
@@ -158,5 +159,4 @@ class gk_comments extends CModule
 
         return true;
     }
-
 }
