@@ -414,4 +414,4 @@
 
     exports.Comments = Comments;
 
-}((this.BX = this.BX || {}),BX,BX.Vue3));
+}((this.BX = this.BX || {}),BX,BX));
