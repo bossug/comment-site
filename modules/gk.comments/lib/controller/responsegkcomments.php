@@ -24,6 +24,7 @@ class ResponseGkComments extends Controller
     public static $path;
     public static $query;
     public static $setCount;
+    public static $isAcceptedUrlParameters = "";
 	public function configureActions(): array
 	{
 		return [
@@ -64,11 +65,12 @@ class ResponseGkComments extends Controller
         self::$query = $request->getPost('query');
         $list = $request->getPostList()->toArray();
         self::$pages = $request->getPost('page');
+        self::acceptedUrlParameters = $list['acceptedUrlParameters'];
 
         // если $list['acceptedUrlParameters'] не пуст, значит нужно учиывать эти параметры при создании комментария
-        if(!empty($list['acceptedUrlParameters'])) {
+        if(!empty( self::acceptedUrlParameters )) {
             if(!empty($list['query'])) {
-                $filteredQuery = self::filterQueryStringByKeys($list['query'],$list['acceptedUrlParameters']);
+                $filteredQuery = self::filterQueryStringByKeys( $list['query'], self::acceptedUrlParameters );
                 $list['query'] = $filteredQuery;
             }
         }
@@ -167,7 +169,7 @@ class ResponseGkComments extends Controller
     public static function getListComment()
     {
         $request = \Bitrix\Main\Context::getCurrent()->getRequest()->getValues();
-        $isAcceptedUrlParameters = !empty($request['acceptedUrlParameters']);
+        self::acceptedUrlParameters = $request['acceptedUrlParameters'];
 
         $params = [
             'count_total' => 1,
@@ -205,9 +207,9 @@ class ResponseGkComments extends Controller
             }
         }
 
-        if ( $isAcceptedUrlParameters ) {
+        if ( !empty(self::acceptedUrlParameters) ) {
             // если пользователь задал параметры, которые нужно контролировать они будут в $request['acceptedUrlParameters']
-            $filteredQuery = self::filterQueryStringByKeys(self::$query, $request['acceptedUrlParameters']); // получим строку только с этими параметрами
+            $filteredQuery = self::filterQueryStringByKeys( self::$query, self::acceptedUrlParameters ); // получим строку только с этими параметрами
 
             $params['filter']['=QUERY'] = $filteredQuery;
             $params['filter']['=PATH'] = self::$path;
@@ -273,6 +275,7 @@ class ResponseGkComments extends Controller
         // Формируем новую строку с параметрами
         return http_build_query($filteredParams);
     }
+
 
 
 }
