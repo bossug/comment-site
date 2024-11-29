@@ -141,3 +141,10 @@ textarea.ui-ctl-element:focus {
     color: #d32f2f;
     text-decoration: underline;
 }
+#application input.ui-btn {
+    box-sizing: content-box!important;
+}
+
+#application input.ui-btn {
+    box-sizing: content-box!important;
+}

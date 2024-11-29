@@ -41,3 +41,7 @@
 .child-item.comment-item {
     margin-left: 74px;
 }
+
+input[type='submit'] {
+    box-sizing: content-box;
+}

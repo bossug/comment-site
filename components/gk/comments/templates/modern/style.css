@@ -177,3 +177,12 @@
     cursor: pointer;
 }
 
+#application input.ui-btn {
+    box-sizing: content-box!important;
+}
+
+input[type='submit'] {
+    box-sizing: content-box;
+}
+
+
