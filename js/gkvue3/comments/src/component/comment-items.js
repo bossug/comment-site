@@ -7,15 +7,22 @@ import './comment-items.css';
 const {runAction} = BX.ajax;
 export const CommentItems = {
     components:
-    {
-        Items,
-        CommentFormNoauth,
-        CommentFormAuth,
-        IconCommenting,
-        CustomPreloader,
-        IconClose,
-        ArrowRight,
-        ArrowLeft
+        {
+            Items,
+            CommentFormNoauth,
+            CommentFormAuth,
+            IconCommenting,
+            CustomPreloader,
+            IconClose,
+            ArrowRight,
+            ArrowLeft
+        },
+    props: {
+        acceptedUrlParameters: {
+            type: String,
+            required: false,
+            default: '',
+        },
     },
     data()
     {
@@ -24,6 +31,7 @@ export const CommentItems = {
         const arResult = reactive({});
         arResult.path = url.pathname;
         arResult.query = url.search;
+        arResult.acceptedUrlParameters = this.acceptedUrlParameters
 
         const loading = reactive({
             isLoading: true
@@ -32,7 +40,8 @@ export const CommentItems = {
         runAction('gk:comments.CC.ResponseGkComments.getComment',{
             data: {
                 path: arResult.path,
-                query: arResult.query
+                query: arResult.query,
+                acceptedUrlParameters: this.acceptedUrlParameters,
             }
         }).then(function(response){
             if (response.data.page > 1) {
@@ -85,6 +94,7 @@ export const CommentItems = {
             fullName: '',
             userData: userData,
             loading,
+            acceptedUrlParameters: ""
             page: 0,
             pages: 1,
         }
@@ -127,6 +137,9 @@ export const CommentItems = {
         buttonSendComment(data)
         {
             const {arResult} = this;
+
+            data.acceptedUrlParameters = this.$Bitrix.Application.instance.options.acceptedUrlParameters;
+
             runAction('gk:comments.CC.ResponseGkComments.setComment',{
                 data: {
                     NAME: data.NAME,
@@ -138,6 +151,7 @@ export const CommentItems = {
                     USER_ID: data.userId,
                     comment_id: data.comment_id,
                     page: this.arResult.Pages
+                    acceptedUrlParameters:data.acceptedUrlParameters
                 }
             }).then(function(comment){
                 $('.closeComments').trigger('click')
@@ -217,6 +231,9 @@ export const CommentItems = {
         buttonEditComment(data)
         {
             const {arResult} = this;
+
+            data.acceptedUrlParameters = this.$Bitrix.Application.instance.options.acceptedUrlParameters;
+
             runAction('gk:comments.CC.ResponseGkComments.editComment',{
                 data: data,
             }).then(function(comment){
@@ -347,8 +364,10 @@ export const CommentItems = {
                             </div>
                             <div class="ui-form form-body" v-if="showComment">
                                 <CommentFormAuth
+                                    :currentQueryParams: currentQueryParams
                                     :showComment="showComment" 
-                                    :path="path" 
+                                    :path="path"
+                                    :query="query" 
                                     @open-comment-auth="openCommentAuth" 
                                     @close-comment="closeComment" 
                                     @button-send-comment="buttonSendComment"
@@ -357,6 +376,7 @@ export const CommentItems = {
                         </div>
                         <div class="comment-button-body mb-3" v-else>
                             <CommentFormNoauth 
+                                :currentQueryParams: currentQueryParams
                                 :showComment="showComment" 
                                 :path="path" 
                                 :isFullName="isFullName" 
@@ -370,7 +390,8 @@ export const CommentItems = {
                     </div>
                     <div class="comment-body" id="comment-body">
                         <template v-for="(post, index) in arResult.arrayComment" :key="index">
-                            <Items  v-if="(post.COMMENT_ID == 0)" appear :duration="{ enter: 500, leave: 500 }" 
+                            <Items  v-if="(post.COMMENT_ID == 0)" appear :duration="{ enter: 500, leave: 500 }"
+                                :query="query" 
                                 :name="post.NAME"
                                 :text="post.COMMENT"
                                 :icon="post.icon"

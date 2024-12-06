@@ -41,3 +41,7 @@
 .child-item.comment-item {
     margin-left: 74px;
 }
+
+#application input.ui-btn {
+    box-sizing: content-box!important;
+}

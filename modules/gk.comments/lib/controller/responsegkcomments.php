@@ -3,6 +3,9 @@
 namespace GK\COMMENTS\Controller;
 
 use Bitrix\Main\Application;
+use Bitrix\Main\Context;
+use Bitrix\Main\DB\SqlException;
+use Bitrix\Main\DB\SqlExpression;
 use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Engine\ActionFilter;
@@ -21,6 +24,7 @@ class ResponseGkComments extends Controller
     public static $path;
     public static $query;
     public static $setCount;
+    public static $isAcceptedUrlParameters = "";
 	public function configureActions(): array
 	{
 		return [
@@ -61,6 +65,15 @@ class ResponseGkComments extends Controller
         self::$query = $request->getPost('query');
         $list = $request->getPostList()->toArray();
         self::$pages = $request->getPost('page');
+        self::$acceptedUrlParameters = $list['acceptedUrlParameters'];
+
+        // если $list['acceptedUrlParameters'] не пуст, значит нужно учиывать эти параметры при создании комментария
+        if(!empty( self::$acceptedUrlParameters )) {
+            if(!empty($list['query'])) {
+                $filteredQuery = self::filterQueryStringByKeys( $list['query'], self::acceptedUrlParameters );
+                $list['query'] = $filteredQuery;
+            }
+        }
 
         $fields = [
             'COMMENT' => $list['text'],
@@ -151,6 +164,9 @@ class ResponseGkComments extends Controller
 
     public static function getListComment()
     {
+        $request = \Bitrix\Main\Context::getCurrent()->getRequest()->getValues();
+        self::$acceptedUrlParameters = $request['acceptedUrlParameters'];
+
         $params = [
             'count_total' => 1,
             'order' => ['DATE_CREATE' => 'ASC'],
@@ -184,11 +200,13 @@ class ResponseGkComments extends Controller
                     'isShow' => false,
                 ];
             }
-        } else {
-            //$params['filter']['=PATH'] = $path;
         }
-        if (self::$setChpu !== 'Y') {
-            $params['filter']['=QUERY'] = self::$query;
+
+        if ( !empty(self::acceptedUrlParameters) ) {
+            // если пользователь задал параметры, которые нужно контролировать они будут в $request['acceptedUrlParameters']
+            $filteredQuery = self::filterQueryStringByKeys( self::$query, self::acceptedUrlParameters ); // получим строку только с этими параметрами
+
+            $params['filter']['=QUERY'] = $filteredQuery;
             $params['filter']['=PATH'] = self::$path;
         } else {
             $params['filter']['=PATH'] = self::$path;
@@ -231,5 +249,53 @@ class ResponseGkComments extends Controller
             'count' => (int)$coont,
             'limit' => (int)self::$setCount
         ];
+    }
+
+    public function delCommentAction()
+    {
+        $request = Application::getInstance()->getContext()->getRequest();
+        $path = $request->getPost('path');
+        GkCommentsTable::delete($request->getPost('id'));
+        /*$params = [
+            'count_total' => 1,
+            'order' => ['DATE_CREATE' => 'ASC'],
+        ];
+        if ($path === '/' || $path === '') {
+            // мы на главной
+            $params['filter']['COMMENT_ID'] = 0;
+        } else {
+            $params['filter']['=PATH'] = $path;
+        }
+        $objs = GkCommentsTable::getList($params);
+        $result = [];
+        $objTime = new DateTime();
+        $objTime->add('-1 days');
+        if ($objs->getCount() > 0) {
+            foreach ($objs->fetchAll() as &$obj) {
+                $obj['data'] = $obj['DATE_CREATE']->format('d.m.Y');
+                $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp() ? 'вчера' : 'сегодня';
+                $obj['letter'] = mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
+                $obj['NAME'] = $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
+                $result[] = $obj;
+            }
+        }*/
+        return [];
+    }
+    public static function filterQueryStringByKeys(string $query, string $keys): string
+    {
+        // Убираем знак "?" в начале строки, если он есть
+        $query = ltrim($query, '?');
+
+        // Преобразуем строку ключей в массив
+        $keysArray = array_map('trim', explode(',', $keys));
+
+        // Парсим параметры из строки
+        parse_str($query, $params);
+
+        // Оставляем только параметры, которые есть в $keys
+        $filteredParams = array_intersect_key($params, array_flip($keysArray));
+
+        // Формируем новую строку с параметрами
+        return http_build_query($filteredParams);
     }
 }
