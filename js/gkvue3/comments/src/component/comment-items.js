@@ -134,6 +134,7 @@ export const CommentItems = {
                     EMAIL: data.EMAIL,
                     text: data.text,
                     path: data.path,
+                    query: this.arResult.query,
                     USER_ID: data.userId,
                     comment_id: data.comment_id,
                     page: this.arResult.Pages
@@ -382,6 +383,7 @@ export const CommentItems = {
                                 :show="true"
                                 :child="false" 
                                 :path="path" 
+                                :query="query" 
                                 :userid="arResult.userId" 
                                 :isuser="isUser" 
                                 :isFullName="isFullName" 
@@ -405,6 +407,7 @@ export const CommentItems = {
                                     :show="true" 
                                     :child="true" 
                                     :path="path" 
+                                    :query="query"
                                     :userData="userData" 
                                     @edit-comment="buttonEditComment" 
                                     @message-callback="ParentCall"/>

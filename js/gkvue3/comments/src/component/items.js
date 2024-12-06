@@ -4,7 +4,7 @@ import {CommentFormEdit} from "./form/comment-form-edit";
 import {IconClose, IconEdit, IconDelete, IconCommenting} from "./icons/icon-complete";
 
 export const Items = {
-    props: ['name', 'letter', 'text', 'icon', 'data', 'timedata', 'elementId', 'id', 'isauthor', 'show', 'child', 'path', 'userid', 'isuser', 'isFullName', 'userData'],
+    props: ['name', 'letter', 'text', 'icon', 'data', 'timedata', 'elementId', 'id', 'isauthor', 'show', 'child', 'path', 'query', 'userid', 'isuser', 'isFullName', 'userData'],
     components: {
         CommentFormNoauth,
         CommentFormAuth,
@@ -64,6 +64,7 @@ export const Items = {
                         <CommentFormNoauth 
                             :showComment="comment" 
                             :path="path" 
+                            :query="query"
                             :isFullName="isFullName" 
                             :child="true" 
                             :id="id"
@@ -78,6 +79,7 @@ export const Items = {
                         <CommentFormAuth
                             :showComment="comment" 
                             :path="path" 
+                            :query="query" 
                             :child="true" 
                             :id="id"
                             @open-comment-auth="openCommentAuth" 
