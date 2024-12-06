@@ -67,6 +67,7 @@ export const Items = {
                         <CommentFormNoauth 
                             :showComment="comment" 
                             :path="path" 
+                            :query="query"
                             :isFullName="isFullName" 
                             :child="true" 
                             :id="id"
@@ -81,6 +82,7 @@ export const Items = {
                         <CommentFormAuth
                             :showComment="comment" 
                             :path="path" 
+                            :query="query" 
                             :child="true" 
                             :id="id"
                             @open-comment-auth="openCommentAuth" 

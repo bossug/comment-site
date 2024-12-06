@@ -65,10 +65,10 @@ class ResponseGkComments extends Controller
         self::$query = $request->getPost('query');
         $list = $request->getPostList()->toArray();
         self::$pages = $request->getPost('page');
-        self::acceptedUrlParameters = $list['acceptedUrlParameters'];
+        self::$acceptedUrlParameters = $list['acceptedUrlParameters'];
 
         // если $list['acceptedUrlParameters'] не пуст, значит нужно учиывать эти параметры при создании комментария
-        if(!empty( self::acceptedUrlParameters )) {
+        if(!empty( self::$acceptedUrlParameters )) {
             if(!empty($list['query'])) {
                 $filteredQuery = self::filterQueryStringByKeys( $list['query'], self::acceptedUrlParameters );
                 $list['query'] = $filteredQuery;
@@ -111,14 +111,11 @@ class ResponseGkComments extends Controller
         self::$query = $list['query'];
         self::$pages = $request->getPost('page');
         $response = GkCommentsTable::update($list['id'], ['COMMENT' => $list['text']]);
-
-
         if ($response->isSuccess()) {
             return self::getListComment();
         }
         return [];
     }
-
     public function getCommentAction()
     {
         self::$setChpu = \Bitrix\Main\Config\Option::get('gk.comments','setChpu');
@@ -127,7 +124,6 @@ class ResponseGkComments extends Controller
         $request = Application::getInstance()->getContext()->getRequest();
         self::$userId = \Bitrix\Main\Engine\CurrentUser::get()->getId();
         self::$isAdmin = \Bitrix\Main\Engine\CurrentUser::get()->isAdmin();
-        // проверить ЧПУ или не ЧПУ по path и query
         self::$path = $request->getPost('path');
         self::$query = $request->getPost('query');
         self::$pages = $request->getPost('page');
@@ -169,7 +165,7 @@ class ResponseGkComments extends Controller
     public static function getListComment()
     {
         $request = \Bitrix\Main\Context::getCurrent()->getRequest()->getValues();
-        self::acceptedUrlParameters = $request['acceptedUrlParameters'];
+        self::$acceptedUrlParameters = $request['acceptedUrlParameters'];
 
         $params = [
             'count_total' => 1,
@@ -188,7 +184,6 @@ class ResponseGkComments extends Controller
                 ))
             ],
         ];
-
         if (self::$pages) {
             $params['offset'] = (self::$pages > 1 ? (self::$pages-1)*self::$setCount : 0);
         }
@@ -216,7 +211,6 @@ class ResponseGkComments extends Controller
         } else {
             $params['filter']['=PATH'] = self::$path;
         }
-
         $objs = GkCommentsTable::getList($params);
         $coont = $objs->getCount();
         if ($coont > self::$setCount) {
@@ -245,7 +239,6 @@ class ResponseGkComments extends Controller
                 }
             }
         }
-
         return [
             'object' => $result,
             'userId' => self::$userId,
@@ -258,6 +251,36 @@ class ResponseGkComments extends Controller
         ];
     }
 
+    public function delCommentAction()
+    {
+        $request = Application::getInstance()->getContext()->getRequest();
+        $path = $request->getPost('path');
+        GkCommentsTable::delete($request->getPost('id'));
+        /*$params = [
+            'count_total' => 1,
+            'order' => ['DATE_CREATE' => 'ASC'],
+        ];
+        if ($path === '/' || $path === '') {
+            // мы на главной
+            $params['filter']['COMMENT_ID'] = 0;
+        } else {
+            $params['filter']['=PATH'] = $path;
+        }
+        $objs = GkCommentsTable::getList($params);
+        $result = [];
+        $objTime = new DateTime();
+        $objTime->add('-1 days');
+        if ($objs->getCount() > 0) {
+            foreach ($objs->fetchAll() as &$obj) {
+                $obj['data'] = $obj['DATE_CREATE']->format('d.m.Y');
+                $obj['timeData'] = $obj['DATE_CREATE']->getTimestamp() < $objTime->getTimestamp() ? 'вчера' : 'сегодня';
+                $obj['letter'] = mb_substr($obj['USER_LAST_NAME'], 0, 1).mb_substr($obj['USER_NAME'], 0, 1);
+                $obj['NAME'] = $obj['USER_LAST_NAME'] . ' ' . $obj['USER_NAME'];
+                $result[] = $obj;
+            }
+        }*/
+        return [];
+    }
     public static function filterQueryStringByKeys(string $query, string $keys): string
     {
         // Убираем знак "?" в начале строки, если он есть
@@ -275,7 +298,4 @@ class ResponseGkComments extends Controller
         // Формируем новую строку с параметрами
         return http_build_query($filteredParams);
     }
-
-
-
 }
