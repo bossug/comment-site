@@ -24,7 +24,7 @@ class ResponseGkComments extends Controller
     public static $path;
     public static $query;
     public static $setCount;
-    public static $isAcceptedUrlParameters = "";
+    public static $acceptedUrlParameters = "";
 	public function configureActions(): array
 	{
 		return [
