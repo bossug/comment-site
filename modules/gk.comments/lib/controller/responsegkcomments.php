@@ -70,7 +70,7 @@ class ResponseGkComments extends Controller
         // если $list['acceptedUrlParameters'] не пуст, значит нужно учиывать эти параметры при создании комментария
         if(!empty( self::$acceptedUrlParameters )) {
             if(!empty($list['query'])) {
-                $filteredQuery = self::filterQueryStringByKeys( $list['query'], self::acceptedUrlParameters );
+                $filteredQuery = self::filterQueryStringByKeys( $list['query'], self::$acceptedUrlParameters );
                 $list['query'] = $filteredQuery;
             }
         }
@@ -202,9 +202,9 @@ class ResponseGkComments extends Controller
             }
         }
 
-        if ( !empty(self::acceptedUrlParameters) ) {
+        if ( !empty(self::$acceptedUrlParameters) ) {
             // если пользователь задал параметры, которые нужно контролировать они будут в $request['acceptedUrlParameters']
-            $filteredQuery = self::filterQueryStringByKeys( self::$query, self::acceptedUrlParameters ); // получим строку только с этими параметрами
+            $filteredQuery = self::filterQueryStringByKeys( self::$query, self::$acceptedUrlParameters ); // получим строку только с этими параметрами
 
             $params['filter']['=QUERY'] = $filteredQuery;
             $params['filter']['=PATH'] = self::$path;
